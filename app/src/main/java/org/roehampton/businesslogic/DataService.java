@@ -1,6 +1,12 @@
 package org.roehampton.businesslogic;
 
 import org.roehampton.dataaccess.IAPIClient;
+<<<<<<< HEAD
+=======
+import org.roehampton.dataaccess.IShareDatabase;
+import org.roehampton.domain.PricePoint;
+import org.roehampton.domain.PriceSeries;
+>>>>>>> 175db492dfc75795142f6feb59e70809610f8833
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -11,89 +17,68 @@ import java.util.Set;
 
 public class DataService implements IDataService {
 
+<<<<<<< HEAD
     private static final int MAX_COMPANIES = 2;
 
     private final ISharePriceRepository repository;
     private final IAPIClient apiClient;
+=======
+    private final IShareDatabase db;
+    private final IAPIClient api;
+>>>>>>> 175db492dfc75795142f6feb59e70809610f8833
     private final Clock clock;
 
-    public DataService(ISharePriceRepository repository,
-                       IApiClient apiClient,
-                       Clock clock) {
-        this.repository = repository;
-        this.apiClient = apiClient;
-        this.clock = clock;
+    public DataService(IShareDatabase db, IAPIClient api, Clock clock) {
+        this.db = Objects.requireNonNull(db);
+        this.api = Objects.requireNonNull(api);
+        this.clock = Objects.requireNonNull(clock);
     }
 
     @Override
-    public ChartDataDTO getChartData(List<String> symbols,
-                                     LocalDate startDate,
-                                     LocalDate endDate) {
+    public PriceSeries getSharePrices(String symbol, LocalDate from, LocalDate to) {
+        validate(symbol, from, to);
 
-        validate(symbols, startDate, endDate);
+        IShareDatabase.DataFound found = db.dbCheck(symbol, from, to);
 
-        List<SeriesDTO> seriesList = new ArrayList<>();
+        switch (found) {
+            case FOUND:
+                return db.getStoredData(symbol, from, to);
 
-        for (String symbol : symbols) {
-
-            // 1. Check which dates are missing locally
-            Set<LocalDate> missing =
-                    repository.findMissingTradingDates(symbol, startDate, endDate);
-
-            // 2. Fetch missing data from API
-            if (!missing.isEmpty()) {
-                List<SharePrice> fetched =
-                        apiClient.fetchDailyPrices(symbol, startDate, endDate);
-
-                repository.saveAll(fetched);
+            case NOT_FOUND: {
+                PriceSeries fetched = api.getSharePrices(symbol, from, to);
+                db.storeData(fetched);
+                return fetched;
             }
 
-            // 3. Load complete data from DB (offline friendly)
-            List<SharePrice> prices =
-                    repository.findPrices(symbol, startDate, endDate);
+            case PARTIAL: {
+                // Simple approach: fetch full range then store (DB should upsert by date)
+                PriceSeries fetched = api.getSharePrices(symbol, from, to);
+                db.storeData(fetched);
 
-            prices.sort(Comparator.comparing(SharePrice::getDate));
-
-            // 4. Map to chart series
-            List<PointDTO> points = new ArrayList<>();
-            for (SharePrice p : prices) {
-                points.add(new PointDTO(p.getDate(), p.getClose()));
+                // return merged (DB becomes the source of truth)
+                return db.getStoredData(symbol, from, to);
             }
 
-            String companyName =
-                    repository.findCompanyName(symbol).orElse(symbol);
-
-            seriesList.add(new SeriesDTO(symbol, companyName, points));
+            default:
+                throw new IllegalStateException("Unexpected dbCheck result: " + found);
         }
-
-        return new ChartDataDTO(seriesList);
     }
 
-    // -------------------------
-    // Validation
-    // -------------------------
-    private void validate(List<String> symbols,
-                          LocalDate start,
-                          LocalDate end) {
+    private void validate(String symbol, LocalDate from, LocalDate to) {
+        if (symbol == null || symbol.trim().isEmpty())
+            throw new IllegalArgumentException("Symbol must be provided.");
 
-        if (symbols == null || symbols.isEmpty())
-            throw new RuntimeException("At least one company required.");
+        if (from == null || to == null)
+            throw new IllegalArgumentException("From/to dates must be provided.");
 
-        if (symbols.size() > MAX_COMPANIES)
-            throw new RuntimeException("Maximum two companies allowed.");
-
-        if (start == null || end == null)
-            throw new RuntimeException("Dates must be selected.");
-
-        if (!start.isBefore(end))
-            throw new RuntimeException("Start date must be before end date.");
+        if (!from.isBefore(to))
+            throw new IllegalArgumentException("From date must be before to date.");
 
         LocalDate today = LocalDate.now(clock);
+        if (to.isAfter(today))
+            throw new IllegalArgumentException("To date cannot be in the future.");
 
-        if (end.isAfter(today))
-            throw new RuntimeException("End date cannot be in future.");
-
-        if (start.isBefore(today.minusYears(2)))
-            throw new RuntimeException("Maximum range is two years.");
+        if (from.isBefore(today.minusYears(2)))
+            throw new IllegalArgumentException("Date range cannot exceed two years.");
     }
 }

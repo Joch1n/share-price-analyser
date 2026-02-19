@@ -1,14 +1,12 @@
 package org.roehampton.businesslogic;
 
+<<<<<<< HEAD
+=======
+import org.roehampton.domain.PriceSeries;
+
+>>>>>>> 175db492dfc75795142f6feb59e70809610f8833
 import java.time.LocalDate;
-import java.util.List;
 
 public interface IDataService {
-
-    /**
-     * Returns chart-ready data for selected companies and date range.
-     */
-    ChartDataDTO getChartData(List<String> symbols,
-                              LocalDate startDate,
-                              LocalDate endDate);
+    PriceSeries getSharePrices(String symbol, LocalDate from, LocalDate to);
 }
