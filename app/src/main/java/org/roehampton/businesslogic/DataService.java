@@ -1,15 +1,20 @@
 package org.roehampton.businesslogic;
 
+import org.roehampton.dataaccess.IAPIClient;
+
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 
 public class DataService implements IDataService {
 
     private static final int MAX_COMPANIES = 2;
 
     private final ISharePriceRepository repository;
-    private final IApiClient apiClient;
+    private final IAPIClient apiClient;
     private final Clock clock;
 
     public DataService(ISharePriceRepository repository,

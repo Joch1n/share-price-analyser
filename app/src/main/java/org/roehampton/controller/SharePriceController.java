@@ -4,7 +4,6 @@ import org.roehampton.businesslogic.IDataService;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 
 public class SharePriceController implements IController {
 
@@ -18,17 +17,12 @@ public class SharePriceController implements IController {
 
     @Override
     public void loadSingleShare(String symbol, LocalDate start, LocalDate end) {
-        validateDates(start, end);
-        List<SharePrice> prices = dataService.getSharePrices(symbol, start, end);
-        chart.displayChart(prices);
+
     }
 
     @Override
     public void compareShares(String symbol1, String symbol2, LocalDate start, LocalDate end) {
-        validateDates(start, end);
-        List<SharePrice> prices1 = dataService.getSharePrices(symbol1, start, end);
-        List<SharePrice> prices2 = dataService.getSharePrices(symbol2, start, end);
-        chart.compareCharts(prices1, prices2);
+
     }
 
     private void validateDates(LocalDate start, LocalDate end) {
