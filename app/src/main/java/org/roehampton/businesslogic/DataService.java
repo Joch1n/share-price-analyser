@@ -2,12 +2,11 @@ package org.roehampton.businesslogic;
 
 import org.roehampton.dataaccess.IAPIClient;
 import org.roehampton.dataaccess.IShareDatabase;
-import org.roehampton.domain.PricePoint;
 import org.roehampton.domain.PriceSeries;
 
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Objects;
 
 public class DataService implements IDataService {
 
