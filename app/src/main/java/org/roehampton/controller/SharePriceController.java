@@ -1,8 +1,6 @@
 package org.roehampton.controller;
 
-import org.roehampton.domain.IDataService;
-import org.roehampton.domain.IChartData;
-import org.roehampton.domain.SharePrice;
+import org.roehampton.businesslogic.IDataService;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
