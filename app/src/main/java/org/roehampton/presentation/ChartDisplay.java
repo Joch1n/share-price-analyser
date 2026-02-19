@@ -1,5 +1,7 @@
 package org.roehampton.presentation;
 
+import org.roehampton.controller.IChartData;
+
 import java.util.Map;
 
 public class ChartDisplay implements IChartDisplay

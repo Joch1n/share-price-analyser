@@ -1,4 +1,4 @@
-package org.roehampton.presentation;
+package org.roehampton.controller;
 
 import java.util.Map;
 
