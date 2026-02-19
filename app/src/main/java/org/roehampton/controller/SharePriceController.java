@@ -1,7 +1,7 @@
 package org.roehampton.controller;
 
 import org.roehampton.businesslogic.IDataService;
-
+import java.util.List;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
@@ -23,6 +23,16 @@ public class SharePriceController implements IController {
     @Override
     public void compareShares(String symbol1, String symbol2, LocalDate start, LocalDate end) {
 
+    }
+    @Override
+    public void setCompanies(List<String> companies) {
+        // TODO: implement later
+    }
+
+    @Override
+    public void setDateRange(LocalDate start, LocalDate end) {
+        validateDates(start, end);
+        // TODO: implement later
     }
 
     private void validateDates(LocalDate start, LocalDate end) {
