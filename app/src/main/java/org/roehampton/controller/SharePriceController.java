@@ -1,18 +1,19 @@
 package org.roehampton.controller;
 
 import org.roehampton.businesslogic.IDataService;
-import java.util.List;
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 public class SharePriceController implements IController {
 
     private final IDataService dataService;
-    private final IChartData chart;
 
-    public SharePriceController(IDataService dataService, IChartData chart) {
+
+    public SharePriceController(IDataService dataService) {
         this.dataService = dataService;
-        this.chart = chart;
+
     }
 
     @Override
@@ -24,6 +25,7 @@ public class SharePriceController implements IController {
     public void compareShares(String symbol1, String symbol2, LocalDate start, LocalDate end) {
 
     }
+
     @Override
     public void setCompanies(List<String> companies) {
         // TODO: implement later
