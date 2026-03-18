@@ -1,10 +1,5 @@
 package org.roehampton.presentation;
 
-// Minimal IController interface
-interface IController {
-    void handleDataPointClick(int index, double value);
-}
-
 public class GraphView {
 
     private final IController controller;

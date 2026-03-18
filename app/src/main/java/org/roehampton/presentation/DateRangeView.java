@@ -1,48 +1,58 @@
-ppackage org.roehampton.presentation;
+package org.roehampton.presentation;
 
 import org.roehampton.controller.IController;
 import org.roehampton.domain.DateRange;
-import java.util.List;
 
-public class GraphView {
+public class DateRangeView implements IDateRangeView {
 
     private final IController controller;
 
-    public GraphView(IController controller) {
+    public DateRangeView(IController controller) {
         this.controller = controller;
     }
 
-    public void showMessage(String message) {
-        System.out.println("GraphView: " + message);
+    @Override
+    public void displayDateForm() {
+        System.out.println("[DateRangeView] Date range form ready (web interface not implemented)");
     }
 
-    public void clickDataPoint(int index, double value) {
-        controller.handleDataPointClick(index, value);
+    @Override
+    public DateRange getDateRange() {
+        throw new UnsupportedOperationException(
+                "getDateRange() would be implemented in Sprint 3 web layer"
+        );
     }
 
-    public void displayDateRange(DateRange range) {
-        System.out.println("Displaying date range: " + range);
+    @Override
+    public boolean validateDateRange(DateRange dateRange) {
+        if (dateRange == null) {
+            return false;
+        }
+
+        try {
+            // Validate with controller's business rules
+            controller.setDateRange(dateRange.getStartDate(), dateRange.getEndDate());
+            return true;
+        } catch (IllegalArgumentException e) {
+            System.out.println("[DateRangeView] Validation failed: " + e.getMessage());
+            return false;
+        }
     }
 
-    public void displayData(List<Double> data) {
-        System.out.println("Graph data: " + data);
-    }
+    public DateRange createDateRange(java.time.LocalDate startDate, java.time.LocalDate endDate) {
+        try {
+            DateRange dateRange = new DateRange(startDate, endDate);
 
-    public static void main(String[] args) {
-        // Dummy controller implementation
-        IController controller = new IController() {
-            @Override
-            public void handleDataPointClick(int index, double value) {
-                System.out.println("Controller clicked: index=" + index + ", value=" + value);
+            if (validateDateRange(dateRange)) {
+                System.out.println("[DateRangeView] Valid date range: " + dateRange);
+                return dateRange;
             }
-        };
 
-        GraphView view = new GraphView(controller);
+            return null;
 
-        view.showMessage("Hello, Graph!");
-        view.clickDataPoint(1, 42.0);
-        view.displayDateRange(new DateRange(java.time.LocalDate.of(2026, 3, 18),
-                java.time.LocalDate.of(2026, 3, 25)));
-        view.displayData(List.of(10.0, 20.5, 30.2));
+        } catch (IllegalArgumentException e) {
+            System.out.println("[DateRangeView] Invalid date range: " + e.getMessage());
+            return null;
+        }
     }
 }
