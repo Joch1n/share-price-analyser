@@ -48,4 +48,19 @@ public class SharePriceController implements IController {
         if (years > 2)
             throw new IllegalArgumentException("Date range cannot exceed two years");
     }
+
+    @Override
+    public void addToWatchlist(String symbol) {
+        dataService.addWatchlistItem(symbol);
+    }
+
+    @Override
+    public List<String> getWatchlist() {
+        return dataService.retrieveWatchlist();
+    }
+
+    @Override
+    public void viewWatchlistItem(String symbol) {
+   //will stay empty since we arent implementing ui behaviour
+    }
 }

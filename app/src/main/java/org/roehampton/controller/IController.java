@@ -24,4 +24,8 @@ public interface IController {
      * @param end     the end date
      */
     void compareShares(String symbol1, String symbol2, LocalDate start, LocalDate end);
+
+    void addToWatchlist(String symbol);
+    List<String> getWatchlist();
+    void viewWatchlistItem(String symbol);
 }
