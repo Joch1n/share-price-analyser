@@ -1,4 +1,9 @@
-package org.roehampton.presentation;
+package main.java.org.roehampton.presentation;
+
+// Minimal IController interface
+interface IController {
+    void handleDataPointClick(int index, double value);
+}
 
 public class GraphView {
 
@@ -14,20 +19,5 @@ public class GraphView {
 
     public void clickDataPoint(int index, double value) {
         controller.handleDataPointClick(index, value);
-    }
-
-    public static void main(String[] args) {
-
-        IController controller = new IController() {
-            @Override
-            public void handleDataPointClick(int index, double value) {
-                System.out.println("Controller received click: index=" + index + ", value=" + value);
-            }
-        };
-
-        GraphView view = new GraphView(controller);
-
-        view.showMessage("Hello, Graph!");
-        view.clickDataPoint(1, 42.0);
     }
 }
