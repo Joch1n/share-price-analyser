@@ -1,111 +1,48 @@
-package org.roehampton.presentation;
+ppackage org.roehampton.presentation;
 
 import org.roehampton.controller.IController;
-
 import org.roehampton.domain.DateRange;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.Scanner;
+import java.util.List;
 
-public class DateRangeView implements IDateRangeView {
+public class GraphView {
 
     private final IController controller;
-    private final Scanner scanner;
-    private final DateTimeFormatter dateFormatter;
 
-    public DateRangeView(IController controller) {
+    public GraphView(IController controller) {
         this.controller = controller;
-        this.scanner = new Scanner(System.in);
-        this.dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     }
 
-    @Override
-    public void displayDateForm() {
-        System.out.println("\n--- DATE RANGE SELECTION ---");
-        System.out.println("Enter dates in format: YYYY-MM-DD");
-        System.out.println("Maximum range: 2 years (730 days)");
-        System.out.println("Example: 2024-01-01");
+    public void showMessage(String message) {
+        System.out.println("GraphView: " + message);
     }
 
-    @Override
-    public DateRange getDateRange() {
-        try {
-            // Get start date from user
-            LocalDate startDate = promptForDate("Start Date");
-            if (startDate == null) {
-                return null;
-            }
-
-            // Get end date from user
-            LocalDate endDate = promptForDate("End Date");
-            if (endDate == null) {
-                return null;
-            }
-
-            // Create DateRange - this will validate internally
-            // (checks that end > start and range <= 730 days)
-            DateRange dateRange = new DateRange(startDate, endDate);
-
-            // Validate with controller for additional business rules
-            if (!controller.validateDateRange(dateRange)) {
-                System.out.println("✗ Date range validation failed");
-                return null;
-            }
-
-            // Display confirmation
-            System.out.printf("✓ Date range: %s (%d days)%n",
-                    dateRange, dateRange.getDaysBetween());
-
-            return dateRange;
-
-        } catch (IllegalArgumentException e) {
-            System.out.println("✗ Invalid date range: " + e.getMessage());
-            return null;
-        }
+    public void clickDataPoint(int index, double value) {
+        controller.handleDataPointClick(index, value);
     }
 
-
-    private LocalDate promptForDate(String prompt) {
-        while (true) {
-            System.out.print(prompt + " (YYYY-MM-DD) or 'q' to cancel: ");
-            String input = scanner.nextLine().trim();
-
-            // Allow user to cancel
-            if (input.equalsIgnoreCase("q")) {
-                return null;
-            }
-
-            try {
-                // Parse the date using YYYY-MM-DD format
-                LocalDate date = LocalDate.parse(input, dateFormatter);
-
-                // Don't allow future dates
-                if (date.isAfter(LocalDate.now())) {
-                    System.out.println("✗ Date cannot be in the future");
-                    continue;
-                }
-
-                return date;
-
-            } catch (DateTimeParseException e) {
-                System.out.println("✗ Invalid date format. Use YYYY-MM-DD (e.g., 2024-01-01)");
-            }
-        }
+    public void displayDateRange(DateRange range) {
+        System.out.println("Displaying date range: " + range);
     }
 
-    @Override
-    public boolean validateDateRange(DateRange dateRange) {
-        if (dateRange == null) {
-            return false;
-        }
+    public void displayData(List<Double> data) {
+        System.out.println("Graph data: " + data);
+    }
 
-        try {
-            // Send validation request to controller
-            return controller.validateDateRange(dateRange);
-        } catch (Exception e) {
-            System.out.println("✗ Validation error: " + e.getMessage());
-            return false;
-        }
+    public static void main(String[] args) {
+        // Dummy controller implementation
+        IController controller = new IController() {
+            @Override
+            public void handleDataPointClick(int index, double value) {
+                System.out.println("Controller clicked: index=" + index + ", value=" + value);
+            }
+        };
+
+        GraphView view = new GraphView(controller);
+
+        view.showMessage("Hello, Graph!");
+        view.clickDataPoint(1, 42.0);
+        view.displayDateRange(new DateRange(java.time.LocalDate.of(2026, 3, 18),
+                java.time.LocalDate.of(2026, 3, 25)));
+        view.displayData(List.of(10.0, 20.5, 30.2));
     }
 }
