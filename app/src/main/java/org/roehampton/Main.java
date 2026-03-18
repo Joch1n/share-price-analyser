@@ -19,4 +19,5 @@ public class Main {
                 .limit(5)
                 .forEach(p -> System.out.println(priceSeries.getSymbol() + "-> " + p.getDate() + " : " + p.getClosePrice()));
     }
+    
 }

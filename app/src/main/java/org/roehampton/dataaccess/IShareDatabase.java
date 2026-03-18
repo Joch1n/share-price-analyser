@@ -17,5 +17,5 @@ public interface IShareDatabase {
 
     void storeData(PriceSeries priceSeries);
 
-    PriceSeries getStoredData(String symbol, LocalDate to, LocalDate from);
+    PriceSeries getStoredData(String symbol, LocalDate from, LocalDate to);
 }
