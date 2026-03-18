@@ -1,9 +1,6 @@
 package main.java.org.roehampton.presentation;
 
-// Minimal IController interface
-interface IController {
-    void handleDataPointClick(int index, double value);
-}
+import org.roehampton.presentation.IController;
 
 public class GraphView {
 
