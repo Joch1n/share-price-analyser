@@ -1,6 +1,7 @@
 package org.roehampton.presentation;
 
 import org.roehampton.controller.IController;
+import java.time.LocalDate;
 
 public class CompanySearchView implements ICompanySearchView {
 
@@ -31,7 +32,6 @@ public class CompanySearchView implements ICompanySearchView {
 
     @Override
     public boolean validateSymbol(String symbol) {
-
         if (symbol == null || symbol.isEmpty()) {
             return false;
         }
@@ -40,25 +40,18 @@ public class CompanySearchView implements ICompanySearchView {
         return symbol.matches("^[A-Z]{1,5}$");
     }
 
-    /**
-     * Process a search request (would be called by web controller)
-     *
-     * @param symbol Stock symbol from web form
-     * @param start Start date from web form
-     * @param end End date from web form
-     */
-    public void processSearchRequest(String symbol, java.time.LocalDate start, java.time.LocalDate end) {
+    public void processSearchRequest(String symbol, LocalDate startDate, LocalDate endDate) {
         if (!validateSymbol(symbol)) {
             System.out.println("[CompanySearchView] Invalid symbol: " + symbol);
             return;
         }
 
         System.out.println("[CompanySearchView] Sending search request to controller: " + symbol);
-        controller.loadSingleShare(symbol, start, end);
+        controller.loadSingleShare(symbol, startDate, endDate);
     }
 
     public void processComparisonRequest(String symbol1, String symbol2,
-                                         java.time.LocalDate start, java.time.LocalDate end) {
+                                         LocalDate startDate, LocalDate endDate) {
         if (!validateSymbol(symbol1) || !validateSymbol(symbol2)) {
             System.out.println("[CompanySearchView] Invalid symbols");
             return;
@@ -71,6 +64,6 @@ public class CompanySearchView implements ICompanySearchView {
 
         System.out.println("[CompanySearchView] Sending comparison request to controller: "
                 + symbol1 + " vs " + symbol2);
-        controller.compareShares(symbol1, symbol2, start, end);
+        controller.compareShares(symbol1, symbol2, startDate, endDate);
     }
 }

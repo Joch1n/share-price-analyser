@@ -1,10 +1,9 @@
 package org.roehampton.presentation;
 
-import org.roehampton.domain.DateRange;
+import java.time.LocalDate;
 
 public interface IDateRangeView {
 
     void displayDateForm();
-    DateRange getDateRange();
-    boolean validateDateRange(DateRange dateRange);
+    boolean validateDateRange(LocalDate startDate, LocalDate endDate);
 }
