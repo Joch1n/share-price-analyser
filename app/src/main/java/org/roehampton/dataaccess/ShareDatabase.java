@@ -14,6 +14,7 @@ public class ShareDatabase implements IShareDatabase {
 
     private final Path dbPath = Path.of("src", "main", "resources", "db", "shareinfo.db");
     private final String jdbcUrl = "jdbc:sqlite:" + dbPath.toString();
+    private final List<String> watchlist = new ArrayList<>();
 
     public ShareDatabase() {
 
@@ -114,7 +115,7 @@ public class ShareDatabase implements IShareDatabase {
         }
     }
 
-    public PriceSeries getStoredData(String symbol, LocalDate to, LocalDate from) {
+    public PriceSeries getStoredData(String symbol, LocalDate from, LocalDate to) {
         String sql = """
                 SELECT price_date, price
                 FROM share_prices
@@ -143,11 +144,9 @@ public class ShareDatabase implements IShareDatabase {
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to retrieve stored data", e);
+            throw new RuntimeException("Failed to retrieve stored data.", e);
         }
     }
-
-    private final List<String> watchlist = new ArrayList<>();
 
     @Override
     public void saveWatchlistItem(String symbol) {
