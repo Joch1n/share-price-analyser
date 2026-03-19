@@ -146,6 +146,21 @@ public class ShareDatabase implements IShareDatabase {
             throw new RuntimeException("Failed to retrieve stored data", e);
         }
     }
+
+    private final List<String> watchlist = new ArrayList<>();
+
+    @Override
+    public void saveWatchlistItem(String symbol) {
+        String upperSymbol = symbol.trim().toUpperCase();
+        if (!watchlist.contains(upperSymbol)) {
+            watchlist.add(upperSymbol);
+        }
+    }
+
+    @Override
+    public List<String> getWatchlist() {
+        return new ArrayList<>(watchlist);
+    }
 }
 
 

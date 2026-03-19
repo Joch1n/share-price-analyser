@@ -1,5 +1,6 @@
 package org.roehampton.presentation;
 
+import org.roehampton.controller.IController;
 import java.time.LocalDate;
 
 public class GraphView {
