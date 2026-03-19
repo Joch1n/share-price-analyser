@@ -1,6 +1,7 @@
-package main.java.org.roehampton.presentation;
+package org.roehampton.presentation;
 
-import org.roehampton.presentation.IController;
+import org.roehampton.controller.IController;
+import java.time.LocalDate;
 
 public class GraphView {
 
@@ -15,6 +16,16 @@ public class GraphView {
     }
 
     public void clickDataPoint(int index, double value) {
-        controller.handleDataPointClick(index, value);
+        System.out.println("Clicked point: index=" + index + ", value=" + value);
+
+        if (index % 2 == 0) {
+            controller.loadSingleShare("AAPL",
+                    LocalDate.of(2026, 3, 1),
+                    LocalDate.of(2026, 3, 10));
+        } else {
+            controller.compareShares("AAPL", "GOOGL",
+                    LocalDate.of(2026, 3, 1),
+                    LocalDate.of(2026, 3, 10));
+        }
     }
 }
