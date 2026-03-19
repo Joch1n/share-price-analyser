@@ -1,6 +1,9 @@
 package org.roehampton.presentation;
 
-// Minimal IController interface
-interface IController {
-    void handleDataPointClick(int index, double value);
+import java.time.LocalDate;
+
+public interface IController {
+    void loadSingleShare(String symbol, LocalDate start, LocalDate end);
+
+    void compareShares(String symbol1, String symbol2, LocalDate start, LocalDate end);
 }
