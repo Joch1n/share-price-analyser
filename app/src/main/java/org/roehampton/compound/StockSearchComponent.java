@@ -22,15 +22,6 @@ public class StockSearchComponent {
         this.dateRangeView = new DateRangeView(controller);
     }
 
-    /**
-     * Handles a user request to view a single stock.
-     * Validates symbol and date range before delegating to the controller.
-     *
-     * @param symbol    Ticker symbol entered by the user
-     * @param startDate Start of the requested date range
-     * @param endDate   End of the requested date range
-     * @return          Error message if invalid, or null on success
-     */
     public String handleSingleStockRequest(String symbol, LocalDate startDate, LocalDate endDate) {
         // Step 1: validate symbol using CompanySearchView logic
         if (!companySearchView.validateSymbol(symbol)) {
