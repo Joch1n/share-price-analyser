@@ -19,4 +19,10 @@ public interface IWatchlistView {
     String getSelectedWatchlistItem();
 
     void showMessage(String message);
+
+    void processAddToWatchlist(String symbol);
+
+    void processViewWatchlist();
+
+    void processViewWatchlistItem(String symbol);
 }

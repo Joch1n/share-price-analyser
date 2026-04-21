@@ -95,4 +95,35 @@ public class WatchlistView implements IWatchlistView {
     public void showMessage(String message) {
         System.out.println(message);
     }
+
+    @Override
+    public void processAddToWatchlist(String symbol) {
+        if (!validateSymbol(symbol)) {
+            showAddFailure("Invalid symbol format");
+            return;
+        }
+
+        try {
+            controller.addToWatchlist(symbol);
+            showAddSuccess(symbol);
+        } catch (Exception e) {
+            showAddFailure(e.getMessage());
+        }
+    }
+
+    @Override
+    public void processViewWatchlist() {
+        displayWatchlist(controller.getWatchlist());
+    }
+
+    @Override
+    public void processViewWatchlistItem(String symbol) {
+        if (!validateSymbol(symbol)) {
+            showMessage("✗ Invalid symbol format");
+            return;
+        }
+
+        controller.viewWatchlistItem(symbol);
+        showMessage("Viewing watchlist item: " + symbol);
+    }
 }
