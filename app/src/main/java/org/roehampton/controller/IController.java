@@ -18,4 +18,6 @@ public interface IController {
     List<String> getWatchlist();
 
     void viewWatchlistItem(String symbol);
+
+    void handleDataPointClick(int index, double value);
 }

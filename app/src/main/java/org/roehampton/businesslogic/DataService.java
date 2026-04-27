@@ -6,7 +6,6 @@ import org.roehampton.domain.PriceSeries;
 
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Objects;
 
 public class DataService implements IDataService {
@@ -70,19 +69,5 @@ public class DataService implements IDataService {
         if (from.isBefore(today.minusYears(2))) {
             throw new IllegalArgumentException("Date range cannot exceed two years.");
         }
-    }
-
-    @Override
-    public void addWatchlistItem(String symbol) {
-        if (symbol == null || symbol.trim().isEmpty()) {
-            throw new IllegalArgumentException("Symbol must be provided.");
-        }
-
-        db.saveWatchlistItem(symbol.trim().toUpperCase());
-    }
-
-    @Override
-    public List<String> retrieveWatchlist() {
-        return db.getWatchlist();
     }
 }
