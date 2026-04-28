@@ -1,6 +1,7 @@
 package org.roehampton.presentation;
 
 import org.roehampton.controller.IController;
+import org.roehampton.domain.PriceSeries;
 
 import java.time.LocalDate;
 
@@ -33,12 +34,37 @@ public class GraphView implements IGraphView {
     }
 
     @Override
-    public void configureComparisonGraph(String symbol1, String symbol2, LocalDate startDate, LocalDate endDate) {
+    public void configureComparisonGraph(String symbol1, String symbol2,
+                                         LocalDate startDate, LocalDate endDate) {
         this.comparisonMode = true;
         this.primarySymbol = symbol1;
         this.secondarySymbol = symbol2;
         this.startDate = startDate;
         this.endDate = endDate;
+    }
+
+    @Override
+    public void displaySingleSeries(PriceSeries series) {
+        System.out.println("=== GRAPH: " + primarySymbol + " ===");
+
+        series.getPoints().forEach(p ->
+                System.out.println(p.getDate() + " : " + p.getClosePrice())
+        );
+    }
+
+    @Override
+    public void displayComparison(PriceSeries series1, PriceSeries series2) {
+        System.out.println("=== COMPARISON GRAPH ===");
+
+        System.out.println("--- " + primarySymbol + " ---");
+        series1.getPoints().forEach(p ->
+                System.out.println(p.getDate() + " : " + p.getClosePrice())
+        );
+
+        System.out.println("--- " + secondarySymbol + " ---");
+        series2.getPoints().forEach(p ->
+                System.out.println(p.getDate() + " : " + p.getClosePrice())
+        );
     }
 
     @Override
@@ -50,10 +76,6 @@ public class GraphView implements IGraphView {
             return;
         }
 
-        if (comparisonMode) {
-            controller.compareShares(primarySymbol, secondarySymbol, startDate, endDate);
-        } else {
-            controller.loadSingleShare(primarySymbol, startDate, endDate);
-        }
+        controller.handleDataPointClick(index, value);
     }
 }
