@@ -9,10 +9,6 @@ public interface IController {
 
     void compareShares(String symbol1, String symbol2, LocalDate start, LocalDate end);
 
-    void setCompanies(List<String> companies);
-
-    void setDateRange(LocalDate start, LocalDate end);
-
     void addToWatchlist(String symbol);
 
     List<String> getWatchlist();
@@ -20,4 +16,6 @@ public interface IController {
     void viewWatchlistItem(String symbol);
 
     void handleDataPointClick(int index, double value);
+
+    void setDateRange(LocalDate startDate, LocalDate endDate);
 }
