@@ -1,23 +1,56 @@
 package org.roehampton.presentation;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
 public class UISkeleton implements IUserInterface {
 
-    private final ICompanySearchView companySearchView;
-    private final IWatchlistView watchlistView;
-    private final IGraphView graphView;
+    private final CompanySearchView companySearchView;
+    private final DateRangeView dateRangeView;
+    private final WatchlistView watchlistView;
+    private final GraphView graphView;
 
-    public UISkeleton(ICompanySearchView companySearchView, IWatchlistView watchlistView, IGraphView graphView) {
+    public UISkeleton(CompanySearchView companySearchView, DateRangeView dateRangeView, WatchlistView watchlistView, GraphView graphView) {
 
         this.companySearchView = companySearchView;
+        this.dateRangeView = dateRangeView;
         this.watchlistView = watchlistView;
         this.graphView = graphView;
 
     }
 
-    @Override
-    public void start() {
 
-        // Start server, handle routing
+    @Override
+    public String renderHomePage() {
+
+        String homePageHtml = loadHtml("ui/index.html");
+
+        return homePageHtml;
 
     }
+
+    @Override
+    public String renderWatchlistPage() {
+
+        return "";
+
+    }
+
+    // Open HTML files and return contents if found
+    private String loadHtml(String path) {
+
+        try (InputStream input = getClass().getClassLoader().getResourceAsStream(path)) {
+
+            if (input == null) {
+                throw new IllegalStateException("HTML file not found: " + path);
+            }
+
+            return new String(input.readAllBytes(), StandardCharsets.UTF_8);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Could not load HTML file: " + path, e);
+        }
+    }
+
 }

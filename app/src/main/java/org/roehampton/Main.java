@@ -3,12 +3,17 @@ package org.roehampton;
 import org.roehampton.dataaccess.APIClient;
 import org.roehampton.dataaccess.ShareDatabase;
 import org.roehampton.domain.PriceSeries;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.net.URI;
 import java.time.LocalDate;
 
+@SpringBootApplication
 public class Main {
     public static void main(String[] args) {
+
+        SpringApplication.run(Main.class, args);
 
         // Test API connection
         APIClient a = new APIClient(URI.create("https://financialmodelingprep.com"));

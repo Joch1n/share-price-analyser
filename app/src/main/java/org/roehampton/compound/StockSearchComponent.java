@@ -1,13 +1,6 @@
 package org.roehampton.compound;
 
-import org.roehampton.controller.IController;
-import org.roehampton.presentation.CompanySearchView;
-import org.roehampton.presentation.DateRangeView;
-import org.roehampton.soa.IStockService;
-
-import java.time.LocalDate;
-
-public class StockSearchComponent {
+/* public class StockSearchComponent {
 
     // Sub-components composed into this compound component
     private final CompanySearchView companySearchView;
@@ -48,7 +41,7 @@ public class StockSearchComponent {
      * @param endDate   End of the date range
      * @return          Error message if invalid, or null on success
      */
-    public String handleComparisonRequest(String symbol1, String symbol2,
+    /* public String handleComparisonRequest(String symbol1, String symbol2,
                                           LocalDate startDate, LocalDate endDate) {
         if (!companySearchView.validateSymbol(symbol1))
             return "Invalid first symbol: " + symbol1;
@@ -70,3 +63,4 @@ public class StockSearchComponent {
     public CompanySearchView getCompanySearchView() { return companySearchView; }
     public DateRangeView getDateRangeView() { return dateRangeView; }
 }
+*/
