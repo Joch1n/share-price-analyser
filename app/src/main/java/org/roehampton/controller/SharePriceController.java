@@ -8,6 +8,9 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+
+//The controller is reliant on the stata service and the graphview
+//The controller class is initiated and it adheres to the objectives of the Icontroller interface
 public class SharePriceController implements IController {
 
     private final IDataService dataService;
@@ -51,11 +54,22 @@ public class SharePriceController implements IController {
     public List<String> getWatchlist() {
         return dataService.retrieveWatchlist();
     }
-
+    //It validates input and fetches data
+    //It also functions by displaying data
+    //It prevents the graph from overfilling and retains with the 2 year requirement
     @Override
     public void viewWatchlistItem(String symbol) {
-        System.out.println("[Controller] View watchlist item: " + symbol);
+
+        validateSymbol(symbol);
+
+        LocalDate end = LocalDate.now();
+        LocalDate start = end.minusMonths(6);
+
+        PriceSeries series = dataService.getSharePrices(symbol, start, end);
+
+        System.out.println(graphView.displaySingleSeries(series));
     }
+
 
     @Override
     public void handleDataPointClick(int index, double value) {
@@ -67,21 +81,24 @@ public class SharePriceController implements IController {
 
     }
 
+    //It checks the date validation
+    //It reiterates the 2 year range requirement
+    //It halts the program and reports the error(if user enters irrelevant data)
     private void validateDates(LocalDate start, LocalDate end) {
         if (start == null || end == null)
             throw new IllegalArgumentException("Dates cannot be null");
 
         if (start.isAfter(end))
-            throw new IllegalArgumentException("Start date must be before end date");
+            throw new IllegalArgumentException("The  date must be before end date");
 
         long years = ChronoUnit.YEARS.between(start, end);
         if (years > 2)
-            throw new IllegalArgumentException("Date range cannot exceed two years");
+            throw new IllegalArgumentException("Date range cannot transcend beyond two years");
     }
 
     private void validateSymbol(String symbol) {
         if (symbol == null || symbol.isBlank()) {
-            throw new IllegalArgumentException("Symbol cannot be empty");
+            throw new IllegalArgumentException("The Symbol cannot be empty");
         }
     }
 }
