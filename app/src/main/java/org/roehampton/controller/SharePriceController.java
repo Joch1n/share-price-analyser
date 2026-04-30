@@ -12,11 +12,13 @@ public class SharePriceController implements IController {
 
     private final IDataService dataService;
     private final IGraphView graphView;
-    //It poses as the main controller inbetween the data service and the graphview
+
+    //It poses as the main controller between the data service and the graphview
     public SharePriceController(IDataService dataService, IGraphView graphView) {
         this.dataService = dataService;
         this.graphView = graphView;
     }
+
     //It stack price data to a single company and returns it as html
     @Override
     public String loadSingleShare(String symbol, LocalDate start, LocalDate end) {
@@ -37,6 +39,7 @@ public class SharePriceController implements IController {
         graphView.configureComparisonGraph(symbol1, symbol2, start, end);
         return graphView.displayComparison(series1, series2);
     }
+
     //It implements the stock symbol to the watchlist
     @Override
     public void addToWatchlist(String symbol) {
@@ -48,6 +51,7 @@ public class SharePriceController implements IController {
     public List<String> getWatchlist() {
         return dataService.retrieveWatchlist();
     }
+
     //It stacks a watchlist item with using a 6 month default range and returns it  a html
     @Override
     public String viewWatchlistItem(String symbol) {
@@ -61,14 +65,15 @@ public class SharePriceController implements IController {
 
     @Override
     public void handleDataPointClick(int index, double value) {
-        throw new UnsupportedOperationException("Not yet implemented");
+
     }
 
     @Override
     public void setDateRange(LocalDate startDate, LocalDate endDate) {
-        throw new UnsupportedOperationException("Not yet implemented");
+
     }
-     //It displays the validity of the date and it imposes the 2 year limit
+
+    //It displays the validity of the date and it imposes the 2 year limit
     private void validateDates(LocalDate start, LocalDate end) {
         if (start == null || end == null)
             throw new IllegalArgumentException("Dates cannot be null");
@@ -79,11 +84,12 @@ public class SharePriceController implements IController {
         if (start.plusYears(2).isBefore(end)) {
             throw new IllegalArgumentException("Date range cannot exceed two years");
         }
-}
-        //It demonstrates through validation that the stock symbol is not empty
-        private void validateSymbol(String symbol){
-            if (symbol == null || symbol.isBlank()) {
-                throw new IllegalArgumentException("Symbol cannot be empty");
-            }
+    }
+
+    //It demonstrates through validation that the stock symbol is not empty
+    private void validateSymbol(String symbol) {
+        if (symbol == null || symbol.isBlank()) {
+            throw new IllegalArgumentException("Symbol cannot be empty");
         }
     }
+}
