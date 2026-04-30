@@ -5,7 +5,6 @@ import org.roehampton.domain.PriceSeries;
 import org.roehampton.presentation.IGraphView;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public class SharePriceController implements IController {
@@ -19,7 +18,7 @@ public class SharePriceController implements IController {
         this.graphView = graphView;
     }
 
-    //It stack price data to a single company and returns it as html
+    //It stacks price data to a single company and returns it as html
     @Override
     public String loadSingleShare(String symbol, LocalDate start, LocalDate end) {
         validateDates(start, end);
@@ -65,11 +64,12 @@ public class SharePriceController implements IController {
 
     @Override
     public void handleDataPointClick(int index, double value) {
-
+    //It is a placeholder tht maintains interface consistency and aids in extensibility
     }
 
     @Override
     public void setDateRange(LocalDate startDate, LocalDate endDate) {
+        validateDates(startDate, endDate);
 
     }
 
