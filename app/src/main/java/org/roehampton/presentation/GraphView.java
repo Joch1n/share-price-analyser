@@ -14,12 +14,10 @@ public class GraphView implements IGraphView {
     private LocalDate startDate;
     private LocalDate endDate;
 
-    //The graphview cannot be initialised without the Icontroller
     public GraphView(IController controller) {
         this.controller = controller;
     }
 
-    //It demonstartes the configuration of the comparison graph
     @Override
     public void configureSingleGraph(String symbol, LocalDate startDate, LocalDate endDate) {
         this.primarySymbol = symbol;
@@ -28,6 +26,7 @@ public class GraphView implements IGraphView {
         this.endDate = endDate;
     }
 
+    //It arranges
     @Override
     public void configureComparisonGraph(String symbol1, String symbol2,
                                          LocalDate startDate, LocalDate endDate) {
@@ -37,65 +36,144 @@ public class GraphView implements IGraphView {
         this.endDate = endDate;
     }
 
+    //It demonstrates the single stocks data
     @Override
     public String displaySingleSeries(PriceSeries series) {
         if (primarySymbol == null || series == null) {
-            return "<p>Graph is not optimised</p>";
+            return "<p style='background-color:yellow;'>No data available</p>";
         }
 
-        StringBuilder html = new StringBuilder();
-        //It reiterates through all the data points
-        html.append("<h2>").append(primarySymbol).append("</h2>");
-        html.append("<table border='1'>");
-        html.append("<tr><th>Date</th><th>Price</th></tr>");
-
-        series.getPoints().forEach(point -> {
-            html.append("<tr>")
-                    .append("<td>").append(point.getDate()).append("</td>")
-                    .append("<td>").append(point.getClosePrice()).append("</td>")
-                    .append("</tr>");
-        });
-
-        html.append("</table>");
-
-        return html.toString();
+        return buildSVG(series, null);
     }
-    //This is an illustration of the comparison of two datasets
+
+
+    // It illustates the two stock comparision
     @Override
-    public String displayComparison(PriceSeries series1, PriceSeries series2) {
-        if (primarySymbol == null || secondarySymbol == null
-                || series1 == null || series2 == null) {
-            return "<p>Comparison not optimised</p>";
+    public String displayComparison(PriceSeries s1, PriceSeries s2) {
+        if (s1 == null || s2 == null || primarySymbol == null || secondarySymbol == null) {
+            return "<p style='background-color:yellow;'>No data comparison </p>";
         }
 
-        StringBuilder html = new StringBuilder();
+        return buildSVG(s1, s2);
+    }
 
-        html.append("<h2>Comparison: ")
-                .append(primarySymbol)
-                .append(" vs ")
-                .append(secondarySymbol)
-                .append("</h2>");
+    private String buildSVG(PriceSeries s1, PriceSeries s2) {
 
-        html.append("<table border='1'>");
-        html.append("<tr><th>Date</th><th>")
-                .append(primarySymbol)
-                .append("</th><th>")
-                .append(secondarySymbol)
-                .append("</th></tr>");
+        int width = 800;
+        int height = 400;
+        int padding = 40;
 
-        int size = Math.min(series1.getPoints().size(), series2.getPoints().size());
+        StringBuilder svg = new StringBuilder();
+
+        svg.append("<svg width='").append(width)
+                .append("' height='").append(height)
+                .append("' style='border:1px solid black'>");
+
+        int size = s1.getPoints().size();
+        if (s2 != null) {
+            size = Math.min(size, s2.getPoints().size());
+        }
+        if (s1.getPoints().isEmpty()||(s2 != null && s2.getPoints().isEmpty()))
+            return "<p style='background-color:yellow; '>No data points </p>";
+
+        if (size < 2) {
+            return "<p style='background-color:yellow; '>Not enough data </p>";
+        }
+        double maxPrice = 0;
 
         for (int i = 0; i < size; i++) {
-            html.append("<tr>")
-                    .append("<td>").append(series1.getPoints().get(i).getDate()).append("</td>")
-                    .append("<td>").append(series1.getPoints().get(i).getClosePrice()).append("</td>")
-                    .append("<td>").append(series2.getPoints().get(i).getClosePrice()).append("</td>")
-                    .append("</tr>");
+            maxPrice = Math.max(maxPrice, s1.getPoints().get(i).getClosePrice());
+            if (s2 != null) {
+                maxPrice = Math.max(maxPrice, s2.getPoints().get(i).getClosePrice());
+            }
         }
 
-        html.append("</table>");
+        if (maxPrice == 0) maxPrice = 1;
+        //gives a better overview and labelling of the x and y axis to the user
+        svg.append("<line x1='").append(padding)
+                .append("' y1='").append(height - padding)
+                .append("' x2='").append(width - padding)
+                .append("' y2='").append(height - padding)
+                .append("' stroke='black'/>");
 
-        return html.toString();
+        svg.append("<line x1='").append(padding)
+                .append("' y1='").append(padding)
+                .append("' x2='").append(padding)
+                .append("' y2='").append(height - padding)
+                .append("' stroke='black'/>");
+
+        //Grid line implementation for a polished/cleaner look
+        for (int i = 1; i <= 5; i++) {
+            int y = padding + i * (height - 2 * padding) / 5;
+
+            svg.append("<line x1='").append(padding)
+                    .append("' y1='").append(y)
+                    .append("' x2='").append(width - padding)
+                    .append("' y2='").append(y)
+                    .append("' stroke='lightgray' stroke-dasharray='4'/>");
+
+        }
+
+        //Displays the title of the graph
+        svg.append("<text x='200' y='25' font-size='15' font-weight='bold'>")
+                .append("SharePriceAnalyser Stock Comparison")
+                .append("</text>");
+
+        //It implements the x and y axis
+        svg.append("<text x='5' y='50'>Price</text>");
+        svg.append("<text x='360' y='380'>Time</text>");
+
+        //Demonstrates the color of the lines
+        svg.append("<text x='50' y='50' fill='blue'>")
+                .append("● ").append(primarySymbol)
+                .append("</text>");
+
+        if (s2 != null) {
+            svg.append("<text x='180' y='50' fill='orange'>")
+                    .append("● ").append(secondarySymbol)
+                    .append("</text>");
+        }
+
+        int prevX1 = 0, prevY1 = 0;
+        int prevX2 = 0, prevY2 = 0;
+
+        for (int i = 0; i < size; i++) {
+
+            int x = padding + (i * (width - 2 * padding)) / Math.max(1, size - 1);
+
+            int y1 = height - padding - (int)((s1.getPoints().get(i).getClosePrice() / maxPrice) * (height - 2 * padding));
+
+            if (i > 0) {
+                svg.append("<line x1='").append(prevX1)
+                        .append("' y1='").append(prevY1)
+                        .append("' x2='").append(x)
+                        .append("' y2='").append(y1)
+                        .append("' stroke='blue' stroke-width='2'/>");
+            }
+
+            prevX1 = x;
+            prevY1 = y1;
+
+            if (s2 != null) {
+
+                int y2 = height - padding - (int)((s2.getPoints().get(i).getClosePrice() / maxPrice) * (height - 2 * padding));
+
+                if (i > 0) {
+                    svg.append("<line x1='").append(prevX2)
+                            .append("' y1='").append(prevY2)
+                            .append("' x2='").append(x)
+                            .append("' y2='").append(y2)
+                            .append("' stroke='orange' stroke-width='2'/>");
+                }
+
+                prevX2 = x;
+                prevY2 = y2;
+            }
+        }
+
+        svg.append("</svg>");
+
+        return svg.toString();
     }
 
     @Override
