@@ -19,10 +19,6 @@ public class GraphView implements IGraphView {
         this.controller = controller;
     }
 
-    @Override
-    public void showMessage(String message) {
-        System.out.println("[GraphView] " + message);
-    }
     //It demonstartes the configuration of the comparison graph
     @Override
     public void configureSingleGraph(String symbol, LocalDate startDate, LocalDate endDate) {
@@ -105,7 +101,6 @@ public class GraphView implements IGraphView {
     @Override
     public void clickDataPoint(int index, double value) {
         if (primarySymbol == null || startDate == null || endDate == null) {
-            showMessage("Graph is not optimised yet.");
             return;
         }
 
