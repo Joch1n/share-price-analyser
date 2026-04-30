@@ -6,14 +6,14 @@ import java.nio.charset.StandardCharsets;
 
 public class UISkeleton implements IUserInterface {
 
-    private final CompanySearchView companySearchView;
+    private final StockSearchView stockSearchView;
     private final DateRangeView dateRangeView;
     private final WatchlistView watchlistView;
     private final GraphView graphView;
 
-    public UISkeleton(CompanySearchView companySearchView, DateRangeView dateRangeView, WatchlistView watchlistView, GraphView graphView) {
+    public UISkeleton(StockSearchView stockSearchView, DateRangeView dateRangeView, WatchlistView watchlistView, GraphView graphView) {
 
-        this.companySearchView = companySearchView;
+        this.stockSearchView = stockSearchView;
         this.dateRangeView = dateRangeView;
         this.watchlistView = watchlistView;
         this.graphView = graphView;
