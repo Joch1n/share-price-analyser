@@ -24,10 +24,10 @@ public class SharePriceUI {
         // UISkeleton composes the other views via their interfaces
         // (diagram: <<delegate>> arrows from UISkeleton)
         this.uiSkeleton = new UISkeleton(
-                stockSearchView,   // via IStockSearchView
-                watchlistView,     // via IWatchlistView
-                graphView,         // via IGraphView
-                dateRangeView      // via IDateRangeView
+                stockSearchView,
+                dateRangeView,
+                watchlistView,
+                graphView
         );
     }
 
