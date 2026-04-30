@@ -3,6 +3,8 @@ package org.roehampton.businesslogic;
 import org.roehampton.dataaccess.IAPIClient;
 import org.roehampton.dataaccess.IShareDatabase;
 import org.roehampton.domain.PriceSeries;
+import org.roehampton.domain.Watchlist;
+import org.roehampton.domain.WatchlistItem;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -20,6 +22,18 @@ public class DataService implements IDataService {
         this.db = Objects.requireNonNull(db);
         this.api = Objects.requireNonNull(api);
         this.clock = Objects.requireNonNull(clock);
+    }
+
+    @Override
+    public void addWatchlistItem(WatchlistItem item) {
+        if (item == null)
+            throw new IllegalArgumentException("Watchlist item cannot be null.");
+        db.saveWatchlistItem(item);
+    }
+
+    @Override
+    public Watchlist retrieveWatchlist() {
+        return db.getWatchlist();
     }
 
     // Gets share prices for a symbol and date range

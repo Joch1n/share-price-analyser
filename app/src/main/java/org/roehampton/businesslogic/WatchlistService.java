@@ -16,7 +16,8 @@ public class WatchlistService implements IWatchlistService {
 
     @Override
     public void addWatchlistItem(WatchlistItem item) {
-
+        if (item == null)
+            throw new IllegalArgumentException("Watchlist item cannot be null.");
         db.saveWatchlistItem(item);
     }
 

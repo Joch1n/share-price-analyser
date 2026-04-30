@@ -2,23 +2,23 @@ package org.roehampton.controller;
 
 import org.roehampton.businesslogic.IDataService;
 import org.roehampton.domain.PriceSeries;
+import org.roehampton.domain.WatchlistItem;
 import org.roehampton.presentation.IGraphView;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SharePriceController implements IController {
 
     private final IDataService dataService;
     private final IGraphView graphView;
 
-    //It poses as the main controller between the data service and the graphview
     public SharePriceController(IDataService dataService, IGraphView graphView) {
         this.dataService = dataService;
         this.graphView = graphView;
     }
 
-    //It stacks price data to a single company and returns it as html
     @Override
     public String loadSingleShare(String symbol, LocalDate start, LocalDate end) {
         validateDates(start, end);
@@ -39,19 +39,27 @@ public class SharePriceController implements IController {
         return graphView.displayComparison(series1, series2);
     }
 
-    //It implements the stock symbol to the watchlist
     @Override
     public void addToWatchlist(String symbol) {
         validateSymbol(symbol);
-        dataService.addWatchlistItem(symbol);
+        LocalDate today = LocalDate.now();
+        WatchlistItem item = new WatchlistItem(
+                symbol.trim().toUpperCase(),
+                today.minusYears(1),
+                today
+        );
+        dataService.addWatchlistItem(item);
     }
 
     @Override
     public List<String> getWatchlist() {
-        return dataService.retrieveWatchlist();
+        return dataService.retrieveWatchlist()
+                .getItems()
+                .stream()
+                .map(WatchlistItem::getSymbol)
+                .collect(Collectors.toList());
     }
 
-    //It stacks a watchlist item with using a 6 month default range and returns it  a html
     @Override
     public String viewWatchlistItem(String symbol) {
         validateSymbol(symbol);
@@ -64,32 +72,24 @@ public class SharePriceController implements IController {
 
     @Override
     public void handleDataPointClick(int index, double value) {
-    //It is a placeholder tht maintains interface consistency and aids in extensibility
     }
 
     @Override
     public void setDateRange(LocalDate startDate, LocalDate endDate) {
         validateDates(startDate, endDate);
-
     }
 
-    //It displays the validity of the date and it imposes the 2 year limit
     private void validateDates(LocalDate start, LocalDate end) {
         if (start == null || end == null)
             throw new IllegalArgumentException("Dates cannot be null");
-
         if (start.isAfter(end))
             throw new IllegalArgumentException("Start date must be before end date");
-
-        if (start.plusYears(2).isBefore(end)) {
+        if (start.plusYears(2).isBefore(end))
             throw new IllegalArgumentException("Date range cannot exceed two years");
-        }
     }
 
-    //It demonstrates through validation that the stock symbol is not empty
     private void validateSymbol(String symbol) {
-        if (symbol == null || symbol.isBlank()) {
+        if (symbol == null || symbol.isBlank())
             throw new IllegalArgumentException("Symbol cannot be empty");
-        }
     }
 }

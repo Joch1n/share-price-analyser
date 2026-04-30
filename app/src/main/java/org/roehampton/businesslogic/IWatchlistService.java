@@ -1,8 +1,9 @@
 package org.roehampton.businesslogic;
 
-import java.util.List;
+import org.roehampton.domain.Watchlist;
+import org.roehampton.domain.WatchlistItem;
 
 public interface IWatchlistService {
-    void addWatchlistItem(String symbol);
-    List<String> retrieveWatchlist();
+    void addWatchlistItem(WatchlistItem item);
+    Watchlist retrieveWatchlist();
 }
