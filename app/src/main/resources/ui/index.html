@@ -1,12 +1,554 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <title> Share Price Analyser </title>
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Price Analyser</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            color: #333;
+        }
+
+        header {
+            background: #003366;
+            color: white;
+            padding: 16px 24px;
+        }
+        header h1 { font-size: 1.3rem; }
+
+        .container {
+            max-width: 960px;
+            margin: 24px auto;
+            padding: 0 16px;
+        }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 4px; }
+        .tab-btn {
+            padding: 10px 20px;
+            border: 1px solid #ccc;
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+            background: #e0e0e0;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .tab-btn.active {
+            background: white;
+            font-weight: bold;
+            color: #003366;
+            border-color: #003366;
+        }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* Card */
+        .card {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 0 6px 6px 6px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .card h2 {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #003366;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+        }
+
+        /* Form */
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .form-group label {
+            font-size: 0.78rem;
+            font-weight: bold;
+            color: #555;
+            text-transform: uppercase;
+        }
+        .form-group input {
+            padding: 7px 10px;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .form-group input.sym {
+            width: 100px;
+            text-transform: uppercase;
+        }
+        .form-group input[type=date] { width: 150px; }
+
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: bold;
+            background: #003366;
+            color: white;
+        }
+        .btn:hover { background: #004488; }
+
+        .btn-small {
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            background: #e8eaf6;
+            color: #003366;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Status */
+        .status {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            display: none;
+        }
+        .status.error   { background: #fdecea; color: #b00020; display: block; }
+        .status.loading { background: #e3f2fd; color: #0d47a1; display: block; }
+        .status.success { background: #e8f5e9; color: #1b5e20; display: block; }
+
+        /* Chart */
+        .chart-wrapper {
+            position: relative;
+            height: 360px;
+            margin-top: 8px;
+        }
+
+        /* Watchlist */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            font-size: 0.88rem;
+        }
+        th {
+            background: #003366;
+            color: white;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+        }
+        tr:hover { background: #f9f9f9; }
+
+        .badge {
+            display: inline-block;
+            background: #e8eaf6;
+            color: #003366;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 0.82rem;
+        }
+
+        .add-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            align-items: center;
+        }
+        .add-row input {
+            padding: 7px 10px;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            width: 120px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
 <body>
 
-<h1>Welcome</h1>
+<header>
+    <h1>Share Price Analyser</h1>
+</header>
 
+<div class="container">
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('single', this)">
+            Single Stock
+        </button>
+        <button class="tab-btn" onclick="showTab('compare', this)">
+            Compare Stocks
+        </button>
+        <button class="tab-btn" onclick="showTab('watchlist', this)">
+            Watchlist
+        </button>
+    </div>
+
+    <!-- Single Stock (StockSearchView + DateRangeView + GraphView) -->
+    <div id="tab-single" class="tab-panel active">
+        <div class="card">
+            <h2>Search Stock</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Symbol</label>
+                    <input class="sym" id="s-sym" type="text"
+                           placeholder="e.g. AAPL" maxlength="5">
+                </div>
+                <div class="form-group">
+                    <label>From</label>
+                    <input id="s-from" type="date">
+                </div>
+                <div class="form-group">
+                    <label>To</label>
+                    <input id="s-to" type="date">
+                </div>
+                <button class="btn" onclick="loadSingle()">View Chart</button>
+            </div>
+            <div id="s-status" class="status"></div>
+        </div>
+        <div class="card">
+            <h2 id="s-title">Price Chart</h2>
+            <div class="chart-wrapper">
+                <canvas id="singleChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compare Stocks (up to 2 stocks — report test case) -->
+    <div id="tab-compare" class="tab-panel">
+        <div class="card">
+            <h2>Compare Two Stocks</h2>
+            <p style="font-size:0.82rem;color:#666;margin-bottom:12px;">
+                Select up to 2 stocks. Prices are shown as % change
+                from the start date for a fair comparison.
+            </p>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Symbol 1</label>
+                    <input class="sym" id="c-sym1" type="text"
+                           placeholder="e.g. AAPL" maxlength="5">
+                </div>
+                <div class="form-group">
+                    <label>Symbol 2</label>
+                    <input class="sym" id="c-sym2" type="text"
+                           placeholder="e.g. GOOGL" maxlength="5">
+                </div>
+                <div class="form-group">
+                    <label>From</label>
+                    <input id="c-from" type="date">
+                </div>
+                <div class="form-group">
+                    <label>To</label>
+                    <input id="c-to" type="date">
+                </div>
+                <button class="btn" onclick="loadCompare()">Compare</button>
+            </div>
+            <div id="c-status" class="status"></div>
+        </div>
+        <div class="card">
+            <h2 id="c-title">Comparison Chart</h2>
+            <div class="chart-wrapper">
+                <canvas id="compareChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Watchlist (WatchlistView) -->
+    <div id="tab-watchlist" class="tab-panel">
+        <div class="card">
+            <h2>My Watchlist</h2>
+            <div id="wl-body">
+                <p style="color:#999;font-size:0.88rem;">
+                    Loading watchlist...
+                </p>
+            </div>
+            <div class="add-row">
+                <input id="w-sym" type="text"
+                       placeholder="e.g. TSLA" maxlength="5">
+                <button class="btn" onclick="addToWatchlist()">
+                    Add to Watchlist
+                </button>
+            </div>
+            <div id="w-status" class="status"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+    // Default dates: today and 1 year ago
+    (function () {
+        const today = new Date();
+        const yearAgo = new Date();
+        yearAgo.setFullYear(today.getFullYear() - 1);
+        const fmt = d => d.toISOString().split('T')[0];
+        ['s-from', 'c-from'].forEach(
+            id => document.getElementById(id).value = fmt(yearAgo));
+        ['s-to', 'c-to'].forEach(
+            id => document.getElementById(id).value = fmt(today));
+    })();
+
+    let singleChart  = null;
+    let compareChart = null;
+
+    // Tab switching
+    function showTab(name, btn) {
+        document.querySelectorAll('.tab-panel')
+                .forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn')
+                .forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active');
+        btn.classList.add('active');
+        if (name === 'watchlist') loadWatchlist();
+    }
+
+    function setStatus(id, msg, type) {
+        const el = document.getElementById(id);
+        el.textContent = msg;
+        el.className = 'status ' + type;
+    }
+
+    // Single stock
+    async function loadSingle() {
+        const sym  = document.getElementById('s-sym').value.trim().toUpperCase();
+        const from = document.getElementById('s-from').value;
+        const to   = document.getElementById('s-to').value;
+
+        if (!sym || !from || !to) {
+            setStatus('s-status', 'Please fill in all fields.', 'error');
+            return;
+        }
+
+        setStatus('s-status', 'Fetching data...', 'loading');
+
+        try {
+            const res  = await fetch(
+                `/api/stock?symbol=${sym}&from=${from}&to=${to}`);
+            const data = await res.json();
+
+            if (data.error) {
+                setStatus('s-status', data.error, 'error');
+                return;
+            }
+
+            setStatus('s-status',
+                `Loaded ${data.labels.length} data points for ${data.symbol}.`,
+                'success');
+
+            document.getElementById('s-title').textContent =
+                `${data.symbol} — Daily Close Price (${from} to ${to})`;
+
+            if (singleChart) singleChart.destroy();
+
+            singleChart = new Chart(
+                document.getElementById('singleChart'), {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: data.symbol + ' (USD)',
+                        data: data.prices,
+                        borderColor: '#003366',
+                        backgroundColor: 'rgba(0,51,102,0.06)',
+                        fill: true,
+                        pointRadius: 0,
+                        borderWidth: 2,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { ticks: { maxTicksLimit: 10 } },
+                        y: { title: { display: true, text: 'Price (USD)' } }
+                    }
+                }
+            });
+
+        } catch (e) {
+            setStatus('s-status', 'Error: ' + e.message, 'error');
+        }
+    }
+
+    // Compare two stocks
+    async function loadCompare() {
+        const s1   = document.getElementById('c-sym1').value.trim().toUpperCase();
+        const s2   = document.getElementById('c-sym2').value.trim().toUpperCase();
+        const from = document.getElementById('c-from').value;
+        const to   = document.getElementById('c-to').value;
+
+        if (!s1 || !s2 || !from || !to) {
+            setStatus('c-status', 'Please fill in all fields.', 'error');
+            return;
+        }
+
+        if (s1 === s2) {
+            setStatus('c-status',
+                'Please enter two different stock symbols.', 'error');
+            return;
+        }
+
+        setStatus('c-status', 'Fetching comparison data...', 'loading');
+
+        try {
+            const res  = await fetch(
+                `/api/compare?symbol1=${s1}&symbol2=${s2}&from=${from}&to=${to}`);
+            const data = await res.json();
+
+            if (data.error) {
+                setStatus('c-status', data.error, 'error');
+                return;
+            }
+
+            setStatus('c-status',
+                `Comparing ${data.symbol1} vs ${data.symbol2}.`,
+                'success');
+
+            document.getElementById('c-title').textContent =
+                `${data.symbol1} vs ${data.symbol2} — % Change from ${from}`;
+
+            if (compareChart) compareChart.destroy();
+
+            compareChart = new Chart(
+                document.getElementById('compareChart'), {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            label: data.symbol1 + ' (% change)',
+                            data: data.prices1,
+                            borderColor: '#003366',
+                            backgroundColor: 'transparent',
+                            pointRadius: 0,
+                            borderWidth: 2,
+                            tension: 0.3
+                        },
+                        {
+                            label: data.symbol2 + ' (% change)',
+                            data: data.prices2,
+                            borderColor: '#b00020',
+                            backgroundColor: 'transparent',
+                            pointRadius: 0,
+                            borderWidth: 2,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { ticks: { maxTicksLimit: 10 } },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '% Change from Start Date'
+                            }
+                        }
+                    }
+                }
+            });
+
+        } catch (e) {
+            setStatus('c-status', 'Error: ' + e.message, 'error');
+        }
+    }
+
+    // Load watchlist
+    async function loadWatchlist() {
+        try {
+            const res  = await fetch('/api/watchlist');
+            const data = await res.json();
+            const body = document.getElementById('wl-body');
+
+            if (!data.length) {
+                body.innerHTML =
+                    '<p style="color:#999;font-size:0.88rem;">' +
+                    'Your watchlist is empty. Add a symbol below.</p>';
+                return;
+            }
+
+            let html =
+                '<table>' +
+                '<thead><tr>' +
+                '<th>#</th><th>Symbol</th><th>Action</th>' +
+                '</tr></thead><tbody>';
+
+            data.forEach((sym, i) => {
+                html += `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td><span class="badge">${sym}</span></td>
+                        <td>
+                            <button class="btn-small"
+                                    onclick="quickView('${sym}')">
+                                View Chart
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+
+            body.innerHTML = html + '</tbody></table>';
+
+        } catch (e) {
+            document.getElementById('wl-body').innerHTML =
+                '<p style="color:#b00020;">Failed to load watchlist.</p>';
+        }
+    }
+
+    // Add to watchlist
+    async function addToWatchlist() {
+        const sym = document.getElementById('w-sym')
+                            .value.trim().toUpperCase();
+
+        if (!sym) {
+            setStatus('w-status', 'Please enter a symbol.', 'error');
+            return;
+        }
+
+        try {
+            const res  = await fetch(
+                `/api/watchlist?symbol=${sym}`, { method: 'POST' });
+            const data = await res.json();
+
+            setStatus('w-status', data.message,
+                res.ok ? 'success' : 'error');
+
+            document.getElementById('w-sym').value = '';
+            loadWatchlist();
+
+        } catch (e) {
+            setStatus('w-status', 'Error: ' + e.message, 'error');
+        }
+    }
+
+    // Click watchlist item → loads its chart in Single Stock tab
+    function quickView(sym) {
+        document.getElementById('s-sym').value = sym;
+        document.querySelectorAll('.tab-btn')[0].click();
+        loadSingle();
+    }
+
+</script>
 </body>
+</html>
