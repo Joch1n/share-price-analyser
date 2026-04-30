@@ -1,6 +1,6 @@
 package org.roehampton.presentation;
 
-public interface ICompanySearchView {
+public interface IStockSearchView {
 
     void displaySearchForm();
     String getSymbol();
