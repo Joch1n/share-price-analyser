@@ -58,7 +58,6 @@ public class SharePriceController implements IController {
 
     @Override
     public void handleDataPointClick(int index, double value) {
-        System.out.println("[Controller] Data point clicked: index=" + index + ", value=" + value);
     }
 
     @Override
