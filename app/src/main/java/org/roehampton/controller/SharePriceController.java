@@ -23,6 +23,7 @@ public class SharePriceController implements IController {
         validateDates(start, end);
         validateSymbol(symbol);
         PriceSeries series = dataService.getSharePrices(symbol, start, end);
+        graphView.configureSingleGraph(symbol, start, end);
         return graphView.displaySingleSeries(series);
     }
 
@@ -33,9 +34,10 @@ public class SharePriceController implements IController {
         validateSymbol(symbol2);
         PriceSeries series1 = dataService.getSharePrices(symbol1, start, end);
         PriceSeries series2 = dataService.getSharePrices(symbol2, start, end);
+        graphView.configureComparisonGraph(symbol1, symbol2, start, end);
         return graphView.displayComparison(series1, series2);
     }
-    //It implements th stock symbol to the watchlist
+    //It implements the stock symbol to the watchlist
     @Override
     public void addToWatchlist(String symbol) {
         validateSymbol(symbol);
@@ -53,15 +55,18 @@ public class SharePriceController implements IController {
         LocalDate end = LocalDate.now();
         LocalDate start = end.minusMonths(6);
         PriceSeries series = dataService.getSharePrices(symbol, start, end);
+        graphView.configureSingleGraph(symbol, start, end);
         return graphView.displaySingleSeries(series);
     }
 
     @Override
     public void handleDataPointClick(int index, double value) {
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
     public void setDateRange(LocalDate startDate, LocalDate endDate) {
+        throw new UnsupportedOperationException("Not yet implemented");
     }
      //It displays the validity of the date and it imposes the 2 year limit
     private void validateDates(LocalDate start, LocalDate end) {
@@ -71,14 +76,14 @@ public class SharePriceController implements IController {
         if (start.isAfter(end))
             throw new IllegalArgumentException("Start date must be before end date");
 
-        long years = ChronoUnit.YEARS.between(start, end);
-        if (years > 2)
-            throw new IllegalArgumentException("Date range cannot transcend two years");
-    }
-    //It demonstrates through validation that the stock symbol is not empty
-    private void validateSymbol(String symbol) {
-        if (symbol == null || symbol.isBlank()) {
-            throw new IllegalArgumentException("Symbol cannot be void");
+        if (start.plusYears(2).isBefore(end)) {
+            throw new IllegalArgumentException("Date range cannot exceed two years");
+        }
+}
+        //It demonstrates through validation that the stock symbol is not empty
+        private void validateSymbol(String symbol){
+            if (symbol == null || symbol.isBlank()) {
+                throw new IllegalArgumentException("Symbol cannot be empty");
+            }
         }
     }
-}
