@@ -16,6 +16,7 @@ public class DataService implements IDataService {
 
     // Creates the service with the database, API client, and clock it needs
     public DataService(IShareDatabase db, IAPIClient api, Clock clock) {
+
         this.db = Objects.requireNonNull(db);
         this.api = Objects.requireNonNull(api);
         this.clock = Objects.requireNonNull(clock);

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-// Represents all the points on the graph for a company
+// Represents all the points on the graph for a stock
 // Collection of PricePoint objects
 public class PriceSeries {
 

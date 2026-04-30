@@ -1,8 +1,9 @@
 package org.roehampton.businesslogic;
 
 import org.roehampton.dataaccess.IShareDatabase;
+import org.roehampton.domain.Watchlist;
+import org.roehampton.domain.WatchlistItem;
 
-import java.util.List;
 import java.util.Objects;
 
 public class WatchlistService implements IWatchlistService {
@@ -14,16 +15,13 @@ public class WatchlistService implements IWatchlistService {
     }
 
     @Override
-    public void addWatchlistItem(String symbol) {
-        if (symbol == null || symbol.trim().isEmpty()) {
-            throw new IllegalArgumentException("Symbol must be provided.");
-        }
+    public void addWatchlistItem(WatchlistItem item) {
 
-        db.saveWatchlistItem(symbol.trim().toUpperCase());
+        db.saveWatchlistItem(item);
     }
 
     @Override
-    public List<String> retrieveWatchlist() {
+    public Watchlist retrieveWatchlist() {
         return db.getWatchlist();
     }
 }

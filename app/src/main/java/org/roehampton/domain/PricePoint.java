@@ -2,7 +2,7 @@ package org.roehampton.domain;
 
 import java.time.LocalDate;
 
-// Represents a single point in the graph for a company
+// Represents a single point in the graph for a stock
 public class PricePoint {
 
     private final LocalDate date;

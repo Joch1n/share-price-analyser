@@ -2,6 +2,8 @@ package org.roehampton.dataaccess;
 
 import org.roehampton.domain.PricePoint;
 import org.roehampton.domain.PriceSeries;
+import org.roehampton.domain.Watchlist;
+import org.roehampton.domain.WatchlistItem;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,6 +23,7 @@ public class ShareDatabase implements IShareDatabase {
         initialiseDatabase();
     }
 
+    // Create sqlite db file and table inside if they don't already exist
     private void initialiseDatabase() {
         try {
 
@@ -29,16 +32,34 @@ public class ShareDatabase implements IShareDatabase {
             try (Connection connection = DriverManager.getConnection(jdbcUrl);
                  Statement statement = connection.createStatement()) {
 
-                String createTableSql = """
+                statement.execute("""
                         CREATE TABLE IF NOT EXISTS share_prices (
                             symbol TEXT NOT NULL,
                             price_date TEXT NOT NULL,
                             price REAL NOT NULL,
                             PRIMARY KEY (symbol, price_date)
                         )
-                        """;
+                        """);
 
-                statement.execute(createTableSql);
+                statement.execute("""
+                        CREATE TABLE IF NOT EXISTS saved_graphs (
+                            graph_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            symbol TEXT NOT NULL,
+                            start_date TEXT NOT NULL,
+                            end_date TEXT NOT NULL,
+                            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                            UNIQUE(symbol, start_date, end_date)
+                        )
+                        """);
+
+                statement.execute("""
+                        CREATE TABLE IF NOT EXISTS watchlist (
+                            watchlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            graph_id INTEGER NOT NULL UNIQUE,
+                            FOREIGN KEY (graph_id) REFERENCES saved_graphs(graph_id)
+                                ON DELETE CASCADE
+                        )
+                        """);
             }
 
         } catch (Exception e) {
@@ -47,6 +68,7 @@ public class ShareDatabase implements IShareDatabase {
         }
     }
 
+    // Creates a connection to database when communication is required
     private Connection connect() throws SQLException {
 
         return DriverManager.getConnection(jdbcUrl);
@@ -64,9 +86,10 @@ public class ShareDatabase implements IShareDatabase {
                   AND price_date BETWEEN ? AND ?
                 """;
 
+        // Tries connecting and running sql statement in db
         try (Connection connection = connect(); PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
-            // Substitute '?' in sql string
+            // Values that substitute '?' in sql string
             preparedStatement.setString(1, symbol);
             preparedStatement.setString(2, from.toString());
             preparedStatement.setString(3, to.toString());
@@ -148,17 +171,102 @@ public class ShareDatabase implements IShareDatabase {
         }
     }
 
-    @Override
-    public void saveWatchlistItem(String symbol) {
-        String upperSymbol = symbol.trim().toUpperCase();
-        if (!watchlist.contains(upperSymbol)) {
-            watchlist.add(upperSymbol);
+    private int saveGraph(String symbol, LocalDate from, LocalDate to) {
+        String insertSql = """
+                INSERT OR IGNORE INTO saved_graphs (symbol, start_date, end_date)
+                VALUES (?, ?, ?)
+                """;
+
+        String selectSql = """
+                SELECT graph_id
+                FROM saved_graphs
+                WHERE symbol = ?
+                  AND start_date = ?
+                  AND end_date = ?
+                """;
+
+        try (Connection connection = connect()) {
+
+            try (PreparedStatement insertStatement = connection.prepareStatement(insertSql)) {
+                insertStatement.setString(1, symbol.trim().toUpperCase());
+                insertStatement.setString(2, from.toString());
+                insertStatement.setString(3, to.toString());
+                insertStatement.executeUpdate();
+            }
+
+            try (PreparedStatement selectStatement = connection.prepareStatement(selectSql)) {
+                selectStatement.setString(1, symbol.trim().toUpperCase());
+                selectStatement.setString(2, from.toString());
+                selectStatement.setString(3, to.toString());
+
+                try (ResultSet resultSet = selectStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return resultSet.getInt("graph_id");
+                    }
+                }
+            }
+
+            throw new RuntimeException("Saved graph could not be found.");
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to save graph.", e);
         }
     }
 
     @Override
-    public List<String> getWatchlist() {
-        return new ArrayList<>(watchlist);
+    public void saveWatchlistItem(WatchlistItem item) {
+
+        int graphId = saveGraph(
+                item.getSymbol(),
+                item.getStartDate(),
+                item.getEndDate()
+        );
+
+        String sql = """
+                INSERT OR IGNORE INTO watchlist (graph_id)
+                VALUES (?)
+                """;
+
+        try (Connection connection = connect();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, graphId);
+            preparedStatement.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to save watchlist item.", e);
+        }
+    }
+
+    @Override
+    public Watchlist getWatchlist() {
+
+        String sql = """
+                SELECT g.symbol, g.start_date, g.end_date
+                FROM watchlist w
+                JOIN saved_graphs g ON w.graph_id = g.graph_id
+                ORDER BY w.watchlist_id ASC
+                """;
+
+        List<WatchlistItem> items = new ArrayList<>();
+
+        try (Connection connection = connect();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()) {
+                items.add(new WatchlistItem(
+                        resultSet.getString("symbol"),
+                        LocalDate.parse(resultSet.getString("start_date")),
+                        LocalDate.parse(resultSet.getString("end_date"))
+                ));
+            }
+
+            return new Watchlist(items);
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to retrieve watchlist.", e);
+        }
     }
 }
 

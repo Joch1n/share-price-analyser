@@ -2,6 +2,7 @@ package org.roehampton.controller;
 
 import org.roehampton.businesslogic.IDataService;
 import org.roehampton.domain.PriceSeries;
+import org.roehampton.domain.WatchlistItem;
 import org.roehampton.presentation.IGraphView;
 
 import java.time.LocalDate;
@@ -10,7 +11,8 @@ import java.util.List;
 
 
 //The controller is reliant on the stata service and the graphview
-//The controller class is initiated and it adheres to the objectives of the Icontroller interface
+//The controller class is initiated and it adheres to the objectives of the IController interface
+
 public class SharePriceController implements IController {
 
     private final IDataService dataService;
@@ -46,14 +48,15 @@ public class SharePriceController implements IController {
     }
 
     @Override
-    public void addToWatchlist(String symbol) {
-        dataService.addWatchlistItem(symbol);
+    public void addToWatchlist(WatchlistItem item) {
+        dataService.addWatchlistItem(item);
     }
 
     @Override
     public List<String> getWatchlist() {
-        return dataService.retrieveWatchlist();
+        return dataService.getWatchlist();
     }
+
     //It validates input and fetches data
     //It also functions by displaying data
     //It prevents the graph from overfilling and retains with the 2 year requirement

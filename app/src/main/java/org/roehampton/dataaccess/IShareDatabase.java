@@ -1,12 +1,14 @@
 package org.roehampton.dataaccess;
 
 import org.roehampton.domain.PriceSeries;
-import java.util.List;
+import org.roehampton.domain.Watchlist;
+import org.roehampton.domain.WatchlistItem;
 
 import java.time.LocalDate;
 
 public interface IShareDatabase {
 
+    // Check if full data is stored, result determines if fetching from API or database
     enum DataFound {
 
         FOUND,
@@ -20,6 +22,7 @@ public interface IShareDatabase {
 
     PriceSeries getStoredData(String symbol, LocalDate from, LocalDate to);
 
-    void saveWatchlistItem(String symbol);
-    List<String> getWatchlist();
+    void saveWatchlistItem(WatchlistItem item);
+
+    Watchlist getWatchlist();
 }
