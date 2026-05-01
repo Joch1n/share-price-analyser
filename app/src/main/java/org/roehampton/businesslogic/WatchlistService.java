@@ -3,11 +3,9 @@ package org.roehampton.businesslogic;
 import org.roehampton.dataaccess.IShareDatabase;
 import org.roehampton.domain.Watchlist;
 import org.roehampton.domain.WatchlistItem;
-import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
-@Service
 public class WatchlistService implements IWatchlistService {
 
     private final IShareDatabase db;
@@ -18,8 +16,10 @@ public class WatchlistService implements IWatchlistService {
 
     @Override
     public void addWatchlistItem(WatchlistItem item) {
-        if (item == null)
+        if (item == null) {
             throw new IllegalArgumentException("Watchlist item cannot be null.");
+        }
+
         db.saveWatchlistItem(item);
     }
 

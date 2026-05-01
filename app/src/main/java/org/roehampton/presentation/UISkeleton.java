@@ -28,7 +28,7 @@ public class UISkeleton implements IUserInterface {
 
     @Override
     public String renderWatchlistPage() {
-        return "";
+        return "<p>Watchlist should show saved stock graphs here.</p>";
     }
 
     private String loadHtml(String path) {

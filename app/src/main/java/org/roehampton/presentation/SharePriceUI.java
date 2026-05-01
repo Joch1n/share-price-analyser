@@ -1,14 +1,11 @@
 package org.roehampton.presentation;
 
 import org.roehampton.controller.IController;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
-@Component
-@RestController
 public class SharePriceUI {
 
     private final UISkeleton uiSkeleton;
@@ -17,11 +14,14 @@ public class SharePriceUI {
     private final GraphView graphView;
     private final WatchlistView watchlistView;
 
+    private final List<WatchlistItem> watchlist = new ArrayList<>();
+
     public SharePriceUI(IController controller) {
         this.stockSearchView = new StockSearchView(controller);
         this.dateRangeView   = new DateRangeView(controller);
         this.graphView       = new GraphView(controller);
         this.watchlistView   = new WatchlistView(controller);
+
         this.uiSkeleton = new UISkeleton(
                 stockSearchView,
                 dateRangeView,
@@ -30,43 +30,103 @@ public class SharePriceUI {
         );
     }
 
-    @GetMapping("/")
     public String renderHomePage() {
         return uiSkeleton.renderHomePage();
     }
 
     public String handleSingleStockRequest(String symbol,
-                                           LocalDate startDate, LocalDate endDate) {
-        if (!stockSearchView.validateSymbol(symbol))
-            return "Invalid symbol '" + symbol + "'. Must be 1-5 uppercase letters.";
-        if (!dateRangeView.validateDateRange(startDate, endDate))
-            return "Invalid date range. Must be within the last 2 years.";
+                                           String from,
+                                           String to) {
+        LocalDate startDate = LocalDate.parse(from);
+        LocalDate endDate = LocalDate.parse(to);
+
+        symbol = symbol.toUpperCase();
+
+        if (!stockSearchView.validateSymbol(symbol)) {
+            return "<p>Invalid symbol '" + symbol + "'. Must be 1-5 uppercase letters.</p>";
+        }
+
+        if (!dateRangeView.validateDateRange(startDate, endDate)) {
+            return "<p>Invalid date range. Must be within the last 2 years.</p>";
+        }
+
+        graphView.configureSingleGraph(symbol, startDate, endDate);
         return stockSearchView.processSearchRequest(symbol, startDate, endDate);
     }
 
-    public String handleComparisonRequest(String symbol1, String symbol2,
-                                          LocalDate startDate, LocalDate endDate) {
-        if (!stockSearchView.validateSymbol(symbol1))
-            return "Invalid first symbol: " + symbol1;
-        if (!stockSearchView.validateSymbol(symbol2))
-            return "Invalid second symbol: " + symbol2;
-        if (symbol1.equalsIgnoreCase(symbol2))
-            return "Cannot compare a stock with itself.";
-        if (!dateRangeView.validateDateRange(startDate, endDate))
-            return "Invalid date range.";
+    public String handleComparisonRequest(String symbol1,
+                                          String symbol2,
+                                          String from,
+                                          String to) {
+        LocalDate startDate = LocalDate.parse(from);
+        LocalDate endDate = LocalDate.parse(to);
+
+        symbol1 = symbol1.toUpperCase();
+        symbol2 = symbol2.toUpperCase();
+
+        if (!stockSearchView.validateSymbol(symbol1)) {
+            return "<p>Invalid first symbol: " + symbol1 + "</p>";
+        }
+
+        if (!stockSearchView.validateSymbol(symbol2)) {
+            return "<p>Invalid second symbol: " + symbol2 + "</p>";
+        }
+
+        if (symbol1.equalsIgnoreCase(symbol2)) {
+            return "<p>Cannot compare a stock with itself.</p>";
+        }
+
+        if (!dateRangeView.validateDateRange(startDate, endDate)) {
+            return "<p>Invalid date range.</p>";
+        }
+
+        graphView.configureComparisonGraph(symbol1, symbol2, startDate, endDate);
         return stockSearchView.processComparisonRequest(symbol1, symbol2, startDate, endDate);
     }
 
-    public String addToWatchlist(String symbol) {
-        if (!watchlistView.validateSymbol(symbol))
-            return "Invalid symbol: " + symbol;
-        watchlistView.processAddToWatchlist(symbol);
-        return null;
+    public List<WatchlistItem> getWatchlist() {
+        return watchlist;
     }
 
-    public UISkeleton      getUiSkeleton()     { return uiSkeleton; }
-    public StockSearchView getStockSearchView() { return stockSearchView; }
-    public DateRangeView   getDateRangeView()   { return dateRangeView; }
-    public GraphView       getGraphView()       { return graphView; }
-    public WatchlistView   getWatchlistView()   { return watchlistView; }
+    public WatchlistResponse addToWatchlist(String symbol,
+                                            String from,
+                                            String to) {
+        LocalDate startDate = LocalDate.parse(from);
+        LocalDate endDate = LocalDate.parse(to);
+
+        symbol = symbol.toUpperCase();
+
+        if (!watchlistView.validateSymbol(symbol)) {
+            return new WatchlistResponse(false, "Invalid symbol: " + symbol);
+        }
+
+        if (!dateRangeView.validateDateRange(startDate, endDate)) {
+            return new WatchlistResponse(false, "Invalid date range.");
+        }
+
+        final String watchSymbol = symbol;
+        final String watchFrom = from;
+        final String watchTo = to;
+
+        boolean alreadyExists = watchlist.stream().anyMatch(item ->
+                item.symbol().equals(watchSymbol)
+                        && item.from().equals(watchFrom)
+                        && item.to().equals(watchTo)
+        );
+
+        if (!alreadyExists) {
+            watchlist.add(new WatchlistItem(watchSymbol, watchFrom, watchTo));
+        }
+
+        return new WatchlistResponse(
+                true,
+                watchSymbol + " added to watchlist for " + watchFrom + " to " + watchTo + "."
+        );
+    }
+
+    public record WatchlistItem(String symbol, String from, String to) {
+    }
+
+    public record WatchlistResponse(boolean success, String message) {
+    }
 }

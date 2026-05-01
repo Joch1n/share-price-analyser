@@ -272,6 +272,8 @@
 </div>
 
 <script>
+    let lastViewedStock = null;
+
     // Default dates: today and 1 year ago
     (function () {
         const today = new Date();
@@ -323,6 +325,12 @@
             document.getElementById('s-title').textContent =
                 `${sym} — Daily Close Price (${from} to ${to})`;
             document.getElementById('s-chart').innerHTML = text;
+
+            lastViewedStock = {
+                symbol: sym,
+                from: from,
+                to: to
+            };
 
         } catch (e) {
             setStatus('s-status', 'Error: ' + e.message, 'error');
@@ -378,14 +386,22 @@
                 return;
             }
 
-            let html = '<table><thead><tr><th>#</th><th>Symbol</th><th>Action</th></tr></thead><tbody>';
-            data.forEach((sym, i) => {
+            let html = '<table><thead><tr><th>#</th><th>Symbol</th><th>From</th><th>To</th><th>Action</th></tr></thead><tbody>';
+
+            data.forEach((item, i) => {
                 html += `<tr>
                     <td>${i + 1}</td>
-                    <td><span class="badge">${sym}</span></td>
-                    <td><button class="btn-small" onclick="quickView('${sym}')">View Chart</button></td>
+                    <td><span class="badge">${item.symbol}</span></td>
+                    <td>${item.from}</td>
+                    <td>${item.to}</td>
+                    <td>
+                        <button class="btn-small" onclick="quickView('${item.symbol}', '${item.from}', '${item.to}')">
+                            View Chart
+                        </button>
+                    </td>
                 </tr>`;
             });
+
             body.innerHTML = html + '</tbody></table>';
 
         } catch (e) {
@@ -396,26 +412,52 @@
 
     // Add to watchlist
     async function addToWatchlist() {
-        const sym = document.getElementById('w-sym').value.trim().toUpperCase();
-        if (!sym) {
-            setStatus('w-status', 'Please enter a symbol.', 'error');
+        let sym;
+        let from;
+        let to;
+
+        const typedSymbol = document.getElementById('w-sym').value.trim().toUpperCase();
+
+        if (typedSymbol) {
+            sym = typedSymbol;
+            from = document.getElementById('s-from').value;
+            to = document.getElementById('s-to').value;
+        } else if (lastViewedStock) {
+            sym = lastViewedStock.symbol;
+            from = lastViewedStock.from;
+            to = lastViewedStock.to;
+        } else {
+            setStatus('w-status', 'View a stock graph first, then add it to the watchlist.', 'error');
+            return;
+        }
+
+        if (!sym || !from || !to) {
+            setStatus('w-status', 'Missing symbol or date range.', 'error');
             return;
         }
 
         try {
-            const res  = await fetch(`/api/watchlist?symbol=${sym}`, { method: 'POST' });
+            const res = await fetch(`/api/watchlist?symbol=${sym}&from=${from}&to=${to}`, {
+                method: 'POST'
+            });
+
             const data = await res.json();
-            setStatus('w-status', data.message, res.ok ? 'success' : 'error');
+
+            setStatus('w-status', data.message, data.success ? 'success' : 'error');
             document.getElementById('w-sym').value = '';
             loadWatchlist();
+
         } catch (e) {
             setStatus('w-status', 'Error: ' + e.message, 'error');
         }
     }
 
     // Click watchlist item → load its chart in Single Stock tab
-    function quickView(sym) {
+    function quickView(sym, from, to) {
         document.getElementById('s-sym').value = sym;
+        document.getElementById('s-from').value = from;
+        document.getElementById('s-to').value = to;
+
         document.querySelectorAll('.tab-btn')[0].click();
         loadSingle();
     }
