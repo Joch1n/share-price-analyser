@@ -3,9 +3,11 @@ package org.roehampton.businesslogic;
 import org.roehampton.dataaccess.IShareDatabase;
 import org.roehampton.domain.Watchlist;
 import org.roehampton.domain.WatchlistItem;
+import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
+@Service
 public class WatchlistService implements IWatchlistService {
 
     private final IShareDatabase db;

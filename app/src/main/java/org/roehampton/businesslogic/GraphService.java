@@ -7,7 +7,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
 
+@Service
 public class GraphService implements IGraphService {
 
     private final IDataService dataService;

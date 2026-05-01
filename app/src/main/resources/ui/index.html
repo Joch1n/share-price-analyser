@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Share Price Analyser</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -130,10 +129,9 @@
         .status.success { background: #e8f5e9; color: #1b5e20; display: block; }
 
         /* Chart */
-        .chart-wrapper {
-            position: relative;
-            height: 360px;
+        .chart-area {
             margin-top: 8px;
+            overflow-x: auto;
         }
 
         /* Watchlist */
@@ -190,26 +188,19 @@
 <div class="container">
 
     <div class="tabs">
-        <button class="tab-btn active" onclick="showTab('single', this)">
-            Single Stock
-        </button>
-        <button class="tab-btn" onclick="showTab('compare', this)">
-            Compare Stocks
-        </button>
-        <button class="tab-btn" onclick="showTab('watchlist', this)">
-            Watchlist
-        </button>
+        <button class="tab-btn active" onclick="showTab('single', this)">Single Stock</button>
+        <button class="tab-btn" onclick="showTab('compare', this)">Compare Stocks</button>
+        <button class="tab-btn" onclick="showTab('watchlist', this)">Watchlist</button>
     </div>
 
-    <!-- Single Stock (StockSearchView + DateRangeView + GraphView) -->
+    <!-- Single Stock -->
     <div id="tab-single" class="tab-panel active">
         <div class="card">
             <h2>Search Stock</h2>
             <div class="form-row">
                 <div class="form-group">
                     <label>Symbol</label>
-                    <input class="sym" id="s-sym" type="text"
-                           placeholder="e.g. AAPL" maxlength="5">
+                    <input class="sym" id="s-sym" type="text" placeholder="e.g. AAPL" maxlength="5">
                 </div>
                 <div class="form-group">
                     <label>From</label>
@@ -225,30 +216,25 @@
         </div>
         <div class="card">
             <h2 id="s-title">Price Chart</h2>
-            <div class="chart-wrapper">
-                <canvas id="singleChart"></canvas>
-            </div>
+            <div class="chart-area" id="s-chart"></div>
         </div>
     </div>
 
-    <!-- Compare Stocks (up to 2 stocks — report test case) -->
+    <!-- Compare Stocks -->
     <div id="tab-compare" class="tab-panel">
         <div class="card">
             <h2>Compare Two Stocks</h2>
             <p style="font-size:0.82rem;color:#666;margin-bottom:12px;">
-                Select up to 2 stocks. Prices are shown as % change
-                from the start date for a fair comparison.
+                Select up to 2 stocks to compare their performance over a date range.
             </p>
             <div class="form-row">
                 <div class="form-group">
                     <label>Symbol 1</label>
-                    <input class="sym" id="c-sym1" type="text"
-                           placeholder="e.g. AAPL" maxlength="5">
+                    <input class="sym" id="c-sym1" type="text" placeholder="e.g. AAPL" maxlength="5">
                 </div>
                 <div class="form-group">
                     <label>Symbol 2</label>
-                    <input class="sym" id="c-sym2" type="text"
-                           placeholder="e.g. GOOGL" maxlength="5">
+                    <input class="sym" id="c-sym2" type="text" placeholder="e.g. GOOGL" maxlength="5">
                 </div>
                 <div class="form-group">
                     <label>From</label>
@@ -264,27 +250,20 @@
         </div>
         <div class="card">
             <h2 id="c-title">Comparison Chart</h2>
-            <div class="chart-wrapper">
-                <canvas id="compareChart"></canvas>
-            </div>
+            <div class="chart-area" id="c-chart"></div>
         </div>
     </div>
 
-    <!-- Watchlist (WatchlistView) -->
+    <!-- Watchlist -->
     <div id="tab-watchlist" class="tab-panel">
         <div class="card">
             <h2>My Watchlist</h2>
             <div id="wl-body">
-                <p style="color:#999;font-size:0.88rem;">
-                    Loading watchlist...
-                </p>
+                <p style="color:#999;font-size:0.88rem;">Loading watchlist...</p>
             </div>
             <div class="add-row">
-                <input id="w-sym" type="text"
-                       placeholder="e.g. TSLA" maxlength="5">
-                <button class="btn" onclick="addToWatchlist()">
-                    Add to Watchlist
-                </button>
+                <input id="w-sym" type="text" placeholder="e.g. TSLA" maxlength="5">
+                <button class="btn" onclick="addToWatchlist()">Add to Watchlist</button>
             </div>
             <div id="w-status" class="status"></div>
         </div>
@@ -293,28 +272,19 @@
 </div>
 
 <script>
-
     // Default dates: today and 1 year ago
     (function () {
         const today = new Date();
         const yearAgo = new Date();
         yearAgo.setFullYear(today.getFullYear() - 1);
         const fmt = d => d.toISOString().split('T')[0];
-        ['s-from', 'c-from'].forEach(
-            id => document.getElementById(id).value = fmt(yearAgo));
-        ['s-to', 'c-to'].forEach(
-            id => document.getElementById(id).value = fmt(today));
+        ['s-from', 'c-from'].forEach(id => document.getElementById(id).value = fmt(yearAgo));
+        ['s-to', 'c-to'].forEach(id => document.getElementById(id).value = fmt(today));
     })();
 
-    let singleChart  = null;
-    let compareChart = null;
-
-    // Tab switching
     function showTab(name, btn) {
-        document.querySelectorAll('.tab-panel')
-                .forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.tab-btn')
-                .forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-' + name).classList.add('active');
         btn.classList.add('active');
         if (name === 'watchlist') loadWatchlist();
@@ -326,7 +296,7 @@
         el.className = 'status ' + type;
     }
 
-    // Single stock
+    // Single stock - shows the SVG chart returned by GraphView
     async function loadSingle() {
         const sym  = document.getElementById('s-sym').value.trim().toUpperCase();
         const from = document.getElementById('s-from').value;
@@ -340,56 +310,26 @@
         setStatus('s-status', 'Fetching data...', 'loading');
 
         try {
-            const res  = await fetch(
-                `/api/stock?symbol=${sym}&from=${from}&to=${to}`);
-            const data = await res.json();
+            const res  = await fetch(`/api/stock?symbol=${sym}&from=${from}&to=${to}`);
+            const text = await res.text();
 
-            if (data.error) {
-                setStatus('s-status', data.error, 'error');
+            // If response is an error message (starts with <p>), show it
+            if (text.startsWith('<p')) {
+                setStatus('s-status', text.replace(/<[^>]*>/g, ''), 'error');
                 return;
             }
 
-            setStatus('s-status',
-                `Loaded ${data.labels.length} data points for ${data.symbol}.`,
-                'success');
-
+            setStatus('s-status', `Chart loaded for ${sym}.`, 'success');
             document.getElementById('s-title').textContent =
-                `${data.symbol} — Daily Close Price (${from} to ${to})`;
-
-            if (singleChart) singleChart.destroy();
-
-            singleChart = new Chart(
-                document.getElementById('singleChart'), {
-                type: 'line',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        label: data.symbol + ' (USD)',
-                        data: data.prices,
-                        borderColor: '#003366',
-                        backgroundColor: 'rgba(0,51,102,0.06)',
-                        fill: true,
-                        pointRadius: 0,
-                        borderWidth: 2,
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { ticks: { maxTicksLimit: 10 } },
-                        y: { title: { display: true, text: 'Price (USD)' } }
-                    }
-                }
-            });
+                `${sym} — Daily Close Price (${from} to ${to})`;
+            document.getElementById('s-chart').innerHTML = text;
 
         } catch (e) {
             setStatus('s-status', 'Error: ' + e.message, 'error');
         }
     }
 
-    // Compare two stocks
+    // Compare stocks - shows the SVG comparison chart
     async function loadCompare() {
         const s1   = document.getElementById('c-sym1').value.trim().toUpperCase();
         const s2   = document.getElementById('c-sym2').value.trim().toUpperCase();
@@ -400,74 +340,26 @@
             setStatus('c-status', 'Please fill in all fields.', 'error');
             return;
         }
-
         if (s1 === s2) {
-            setStatus('c-status',
-                'Please enter two different stock symbols.', 'error');
+            setStatus('c-status', 'Please enter two different symbols.', 'error');
             return;
         }
 
         setStatus('c-status', 'Fetching comparison data...', 'loading');
 
         try {
-            const res  = await fetch(
-                `/api/compare?symbol1=${s1}&symbol2=${s2}&from=${from}&to=${to}`);
-            const data = await res.json();
+            const res  = await fetch(`/api/compare?symbol1=${s1}&symbol2=${s2}&from=${from}&to=${to}`);
+            const text = await res.text();
 
-            if (data.error) {
-                setStatus('c-status', data.error, 'error');
+            if (text.startsWith('<p')) {
+                setStatus('c-status', text.replace(/<[^>]*>/g, ''), 'error');
                 return;
             }
 
-            setStatus('c-status',
-                `Comparing ${data.symbol1} vs ${data.symbol2}.`,
-                'success');
-
+            setStatus('c-status', `Comparing ${s1} vs ${s2}.`, 'success');
             document.getElementById('c-title').textContent =
-                `${data.symbol1} vs ${data.symbol2} — % Change from ${from}`;
-
-            if (compareChart) compareChart.destroy();
-
-            compareChart = new Chart(
-                document.getElementById('compareChart'), {
-                type: 'line',
-                data: {
-                    labels: data.labels,
-                    datasets: [
-                        {
-                            label: data.symbol1 + ' (% change)',
-                            data: data.prices1,
-                            borderColor: '#003366',
-                            backgroundColor: 'transparent',
-                            pointRadius: 0,
-                            borderWidth: 2,
-                            tension: 0.3
-                        },
-                        {
-                            label: data.symbol2 + ' (% change)',
-                            data: data.prices2,
-                            borderColor: '#b00020',
-                            backgroundColor: 'transparent',
-                            pointRadius: 0,
-                            borderWidth: 2,
-                            tension: 0.3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { ticks: { maxTicksLimit: 10 } },
-                        y: {
-                            title: {
-                                display: true,
-                                text: '% Change from Start Date'
-                            }
-                        }
-                    }
-                }
-            });
+                `${s1} vs ${s2} (${from} to ${to})`;
+            document.getElementById('c-chart').innerHTML = text;
 
         } catch (e) {
             setStatus('c-status', 'Error: ' + e.message, 'error');
@@ -482,32 +374,18 @@
             const body = document.getElementById('wl-body');
 
             if (!data.length) {
-                body.innerHTML =
-                    '<p style="color:#999;font-size:0.88rem;">' +
-                    'Your watchlist is empty. Add a symbol below.</p>';
+                body.innerHTML = '<p style="color:#999;font-size:0.88rem;">Your watchlist is empty.</p>';
                 return;
             }
 
-            let html =
-                '<table>' +
-                '<thead><tr>' +
-                '<th>#</th><th>Symbol</th><th>Action</th>' +
-                '</tr></thead><tbody>';
-
+            let html = '<table><thead><tr><th>#</th><th>Symbol</th><th>Action</th></tr></thead><tbody>';
             data.forEach((sym, i) => {
-                html += `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td><span class="badge">${sym}</span></td>
-                        <td>
-                            <button class="btn-small"
-                                    onclick="quickView('${sym}')">
-                                View Chart
-                            </button>
-                        </td>
-                    </tr>`;
+                html += `<tr>
+                    <td>${i + 1}</td>
+                    <td><span class="badge">${sym}</span></td>
+                    <td><button class="btn-small" onclick="quickView('${sym}')">View Chart</button></td>
+                </tr>`;
             });
-
             body.innerHTML = html + '</tbody></table>';
 
         } catch (e) {
@@ -518,37 +396,29 @@
 
     // Add to watchlist
     async function addToWatchlist() {
-        const sym = document.getElementById('w-sym')
-                            .value.trim().toUpperCase();
-
+        const sym = document.getElementById('w-sym').value.trim().toUpperCase();
         if (!sym) {
             setStatus('w-status', 'Please enter a symbol.', 'error');
             return;
         }
 
         try {
-            const res  = await fetch(
-                `/api/watchlist?symbol=${sym}`, { method: 'POST' });
+            const res  = await fetch(`/api/watchlist?symbol=${sym}`, { method: 'POST' });
             const data = await res.json();
-
-            setStatus('w-status', data.message,
-                res.ok ? 'success' : 'error');
-
+            setStatus('w-status', data.message, res.ok ? 'success' : 'error');
             document.getElementById('w-sym').value = '';
             loadWatchlist();
-
         } catch (e) {
             setStatus('w-status', 'Error: ' + e.message, 'error');
         }
     }
 
-    // Click watchlist item → loads its chart in Single Stock tab
+    // Click watchlist item → load its chart in Single Stock tab
     function quickView(sym) {
         document.getElementById('s-sym').value = sym;
         document.querySelectorAll('.tab-btn')[0].click();
         loadSingle();
     }
-
 </script>
 </body>
 </html>

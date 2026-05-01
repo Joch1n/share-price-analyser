@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.roehampton.domain.PricePoint;
 import org.roehampton.domain.PriceSeries;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.URI;
@@ -18,27 +19,27 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-// Component that directly communicates with API
+@Component
 public class APIClient implements IAPIClient {
 
     private final HttpClient http;
     private final URI baseUri;
     private final String apiKey;
 
+    // No-arg constructor for Spring
+    public APIClient() {
+        this(URI.create("https://financialmodelingprep.com"));
+    }
+
     public APIClient(URI baseUri) {
-
         if (baseUri == null) throw new IllegalArgumentException("A baseUri must be entered.");
-
         this.apiKey = System.getenv("FMP_API_KEY");
-
         if (this.apiKey == null || this.apiKey.isBlank()) {
             throw new IllegalStateException("Missing environment variable FMP_API_KEY.");
         }
-
         this.baseUri = baseUri;
         this.http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
     }
-
 
     @Override
     public PriceSeries getSharePrices(String symbol, LocalDate from, LocalDate to) {

@@ -2,9 +2,12 @@ package org.roehampton.presentation;
 
 import org.roehampton.controller.IController;
 import org.roehampton.domain.PriceSeries;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
+@Component
 public class GraphView implements IGraphView {
 
     private final IController controller;
@@ -14,10 +17,9 @@ public class GraphView implements IGraphView {
     private LocalDate startDate;
     private LocalDate endDate;
 
-    public GraphView(IController controller) {
+    public GraphView(@Lazy IController controller) {
         this.controller = controller;
     }
-
     @Override
     public void configureSingleGraph(String symbol, LocalDate startDate, LocalDate endDate) {
         this.primarySymbol = symbol;
@@ -25,7 +27,6 @@ public class GraphView implements IGraphView {
         this.startDate = startDate;
         this.endDate = endDate;
     }
-
     //It arranges
     @Override
     public void configureComparisonGraph(String symbol1, String symbol2,

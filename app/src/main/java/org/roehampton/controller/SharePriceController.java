@@ -8,7 +8,9 @@ import org.roehampton.presentation.IGraphView;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
+@Component
 public class SharePriceController implements IController {
 
     private final IDataService dataService;

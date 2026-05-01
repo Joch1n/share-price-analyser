@@ -11,7 +11,9 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ShareDatabase implements IShareDatabase {
 
     private final Path dbPath = Path.of("src", "main", "resources", "db", "shareinfo.db");

@@ -3,13 +3,7 @@ package org.roehampton.presentation;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 
-@Component
-@RestController
 public class UISkeleton implements IUserInterface {
 
     private final StockSearchView stockSearchView;
@@ -27,8 +21,6 @@ public class UISkeleton implements IUserInterface {
         this.graphView = graphView;
     }
 
-    @GetMapping("/")
-    @ResponseBody
     @Override
     public String renderHomePage() {
         return loadHtml("ui/index.html");
@@ -40,13 +32,12 @@ public class UISkeleton implements IUserInterface {
     }
 
     private String loadHtml(String path) {
-        try (InputStream input = getClass().getClassLoader()
-                .getResourceAsStream(path)) {
+        try (InputStream input = getClass().getClassLoader().getResourceAsStream(path)) {
             if (input == null)
                 throw new IllegalStateException("HTML file not found: " + path);
             return new String(input.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new RuntimeException("Could not load HTML: " + path, e);
+            throw new RuntimeException("Could not load HTML file: " + path, e);
         }
     }
 }
