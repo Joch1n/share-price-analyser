@@ -104,8 +104,10 @@ public class GraphView implements IGraphView {
                 .append("' stroke='black'/>");
 
         //Grid line implementation for a polished/cleaner look
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 0; i <= 5; i++) {
             int y = padding + i * (height - 2 * padding) / 5;
+
+            double priceLabel = maxPrice - (i * maxPrice / 5);
 
             svg.append("<line x1='").append(padding)
                     .append("' y1='").append(y)
@@ -113,6 +115,10 @@ public class GraphView implements IGraphView {
                     .append("' y2='").append(y)
                     .append("' stroke='lightgray' stroke-dasharray='4'/>");
 
+            svg.append("<text x='5' y='").append(y + 4)
+                    .append("' font-size='10'>")
+                    .append(String.format("%.2f", priceLabel))
+                    .append("</text>");
         }
 
         //Displays the title of the graph
